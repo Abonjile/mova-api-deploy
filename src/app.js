@@ -1,9 +1,9 @@
 require('dotenv').config();
 console.log('MONGODB_URI:', process.env.MONGODB_URI);
-const connectDB = require('./config/database');
 
 const express = require('express');
 const cors = require('cors');
+const connectDB = require('./config/database');
 
 const app = express();
 
@@ -21,30 +21,11 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
-// app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
 // app.use('/api/workouts', require('./routes/workoutRoutes'));
 // app.use('/api/challenges', require('./routes/challengeRoutes'));
 
 const PORT = process.env.PORT || 3000;
-// TEST ROUTE — Create a test user
-app.post('/test/user', async (req, res) => {
-  try {
-    const User = require('./models/User');
-    const user = new User({
-      fullName: 'Test User',
-      email: 'test@mova.com',
-      ssoProvider: 'GOOGLE',
-      ssoProviderId: 'test123',
-      weight: 70,
-      height: 175,
-      fitnessLevel: 'BEGINNER'
-    });
-    await user.save();
-    res.json({ message: 'Test user created!', user });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
