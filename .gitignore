@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Node modules
 node_modules/
 
@@ -20,7 +19,6 @@ Thumbs.db
 # Build files
 dist/
 build/
-=======
 *.iml
 .gradle
 /local.properties
@@ -36,4 +34,3 @@ build/
 .externalNativeBuild
 .cxx
 local.properties
->>>>>>> 444c09fb6ed973c4da59c8bd808323a63ecba1db
