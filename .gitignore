@@ -1,3 +1,26 @@
+<<<<<<< HEAD
+# Node modules
+node_modules/
+
+# Environment variables (contains secrets)
+.env
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Build files
+dist/
+build/
+=======
 *.iml
 .gradle
 /local.properties
@@ -13,3 +36,4 @@
 .externalNativeBuild
 .cxx
 local.properties
+>>>>>>> 444c09fb6ed973c4da59c8bd808323a63ecba1db
