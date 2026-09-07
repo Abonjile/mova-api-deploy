@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.mova.app"
+    namespace = "com.example.mova"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.mova.app"
+        applicationId = "com.example.mova"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

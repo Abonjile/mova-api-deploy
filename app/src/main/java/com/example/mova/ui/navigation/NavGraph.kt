@@ -4,9 +4,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.mova.ui.screens.profile.ProfileScreen
 import com.example.mova.ui.screens.workout.WorkoutScreen
 import com.example.mova.ui.screens.challenges.ChallengesScreen
@@ -23,11 +23,10 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
 
 @Composable
 fun MovaNavGraph(
+    navController: NavHostController,
     modifier: Modifier = Modifier,
     startDestination: String = Screen.Workout.route
 ) {
-    val navController = rememberNavController()
-
     NavHost(
         navController = navController,
         startDestination = startDestination,

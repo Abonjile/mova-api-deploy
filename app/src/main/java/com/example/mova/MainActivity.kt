@@ -1,4 +1,4 @@
-package com.mova.app
+package com.example.mova
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.mova.ui.navigation.MovaNavGraph
 import com.example.mova.ui.navigation.Screen
+import com.example.mova.ui.theme.MovaTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -66,6 +68,7 @@ fun MovaApp() {
         }
     ) { innerPadding ->
         MovaNavGraph(
+            navController = navController,
             modifier = Modifier.padding(innerPadding)
         )
     }
