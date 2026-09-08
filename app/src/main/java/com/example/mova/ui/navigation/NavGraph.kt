@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.mova.ui.screens.profile.ProfileScreen
+import com.example.mova.ui.screens.profile.EditProfileScreen
 import com.example.mova.ui.screens.profile.SettingsScreen
 import com.example.mova.ui.screens.workout.WorkoutScreen
 import com.example.mova.ui.screens.challenges.ChallengesScreen
@@ -45,7 +46,12 @@ fun MovaNavGraph(
         composable(Screen.Profile.route) {
             ProfileScreen(
                 onNavigateToSettings = { navController.navigate("settings") },
-                onNavigateToEdit = { /* TODO: Navigate to Edit Profile */ }
+                onNavigateToEdit = { navController.navigate(route = "edit profile") }
+            )
+        }
+        composable("edit profile") {
+            EditProfileScreen(
+                onBackPressed = { navController.popBackStack() }
             )
         }
         composable("settings") {
