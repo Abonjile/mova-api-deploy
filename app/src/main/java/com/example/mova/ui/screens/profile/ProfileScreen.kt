@@ -390,25 +390,3 @@ fun StatCard(
         }
     }
 }
-
-// USER DATA CLASS - MOVED TO DATA MODELS
-
-/**
- * User data class - Holds all profile information
- * NOTE: This is now defined in data/models/User.kt
- * Keep this here temporarily until we move everything
- */
-data class User(
-    val fullName: String,
-    val location: String?,
-    val height: Double?,
-    val weight: Double?,
-    val age: Int?,
-    val fitnessLevel: String?,
-    val fitnessGoal: String? = null,  // Added for EditProfile
-    val gender: String? = null,       // Added for EditProfile
-    val email: String? = null,        // Added for EditProfile
-    val language: String = "English", // Added for Settings
-    val notificationsEnabled: Boolean = true,
-    val biometricEnabled: Boolean = false
-)

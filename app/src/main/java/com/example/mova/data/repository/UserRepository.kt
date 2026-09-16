@@ -2,6 +2,7 @@ package com.example.mova.data.repository
 
 import android.util.Log
 import com.example.mova.data.local.MovaDatabase
+import com.example.mova.data.local.UserDao
 import com.example.mova.data.models.User
 import com.example.mova.data.models.toDomain
 import com.example.mova.data.models.toEntity
@@ -29,6 +30,7 @@ class UserRepository @Inject constructor(
     /**
      * Get user from local database (offline-first)
      * If not found locally, fetch from API
+     * Return mock data before backend is ready
      */
     suspend fun getUser(userId: String): User? {
         Log.d(TAG, "Getting user: $userId")
@@ -53,7 +55,26 @@ class UserRepository @Inject constructor(
             return remoteUser
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching user from API: ${e.message}")
-            return null
+            Log.d(TAG, "Returning mock user for UI development")
+
+            // Return mock data for this UI phase
+            val mockUser = User(
+                userId = userId,
+                fullName = "Katlego Mokwena",
+                email = "katlego@example.com",
+                location = "Johannesburg, SA",
+                height = 178.0,
+                weight = 76.0,
+                age = 26,
+                gender = "Male",
+                fitnessLevel = "Intermed.",
+                fitnessGoal = "Burn 2000 cal weekly"
+            )
+
+            // Save mock user to loacl DB so it persists
+            userDao.insertUser(mockUser.toEntity())
+
+            return mockUser
         }
     }
 
@@ -89,7 +110,8 @@ class UserRepository @Inject constructor(
             userDao.insertUser(user.toEntity().copy(isSynced = false))
             Log.d(TAG, "User saved locally (pending sync)")
 
-            Result.failure(e)
+            // Return success with local data UI phase
+            Result.success(user)
         }
     }
 
@@ -120,7 +142,17 @@ class UserRepository @Inject constructor(
             Result.success(updatedUser)
         } catch (e: Exception) {
             Log.e(TAG, "Error updating settings: ${e.message}")
-            Result.failure(e)
+
+            // Return success with local data for UI phase
+            val currentUser = userDao.getUserById(userId)?.toDomain() ?: User(userId = userId)
+            val updatedUser = currentUser.copy(
+                language = language,
+                notificationsEnabled = notificationsEnabled,
+                biometricEnabled = biometricEnabled
+            )
+            userDao.insertUser(updatedUser.toEntity().copy(isSynced = true))
+
+            Result.success(updatedUser)
         }
     }
 
