@@ -9,21 +9,31 @@ const UserSchema = new mongoose.Schema({
   },
   fullName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
+
+  // SSO is optional for now so prototype testing works
   ssoProvider: { type: String, enum: ['GOOGLE', 'FACEBOOK', 'APPLE'], required: true },
-  ssoProviderId: { type: String, required: true },
-  dateOfBirth: Date,
-  gender: { type: String, enum: ['MALE', 'FEMALE', 'OTHER'] },
-  height: Number,
-  weight: Number,
-  fitnessLevel: { type: String, enum: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'], default: 'BEGINNER' },
-  fitnessGoal: String,
-  language: { type: String, enum: ['ENGLISH', 'ISIZULU', 'SOTHO'], default: 'ENGLISH' },
+  ssoProviderId: { type: String, required: true, unique: true },
+
+  // Profile fields
+  age: {type: Number},
+  gender: { type: String, enum: ['Male', 'Female', 'Other'] },
+  height: {type: Number},
+  weight: {weight:Number},
+  fitnessLevel: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced', 'Athlete'], default: 'Beginner' },
+  fitnessGoal: {type: String},
+  location: { type: String },
+
+  // Settings fields
+  language: { type: String, enum: ['English', 'IsiZulu', 'Sesotho'], default: 'English' },
   notificationsEnabled: { type: Boolean, default: true },
-  reminderTime: String,
   biometricEnabled: { type: Boolean, default: false },
+  speechEnabled: { type: Boolean, default: false },
+  reminderTime: { type: String },
+
+
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
 
-// ✅ THIS MUST BE HERE — exporting the model
+// Exports the model
 module.exports = mongoose.model('User', UserSchema);
