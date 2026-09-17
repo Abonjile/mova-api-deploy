@@ -43,38 +43,19 @@ class UserRepository @Inject constructor(
         }
 
         // 2. If not found locally, fetch from API
-        try {
+        return try {
             Log.d(TAG, "User not found locally, fetching from API")
             val remoteUser = userApiService.getUserProfile(userId)
             Log.d(TAG, "User fetched from API: ${remoteUser.fullName}")
 
-            // 3. Save to local database
-            userDao.insertUser(remoteUser.toEntity())
+            // 3. Cache to local database
+            userDao.insertUser(remoteUser.toEntity().copy(isSynced = true))
             Log.d(TAG, "User saved to local database")
 
             return remoteUser
         } catch (e: Exception) {
-            Log.e(TAG, "Error fetching user from API: ${e.message}")
-            Log.d(TAG, "Returning mock user for UI development")
-
-            // Return mock data for this UI phase
-            val mockUser = User(
-                userId = userId,
-                fullName = "Katlego Mokwena",
-                email = "katlego@example.com",
-                location = "Johannesburg, SA",
-                height = 178.0,
-                weight = 76.0,
-                age = 26,
-                gender = "Male",
-                fitnessLevel = "Intermed.",
-                fitnessGoal = "Burn 2000 cal weekly"
-            )
-
-            // Save mock user to loacl DB so it persists
-            userDao.insertUser(mockUser.toEntity())
-
-            return mockUser
+            Log.e(TAG, "Error fetching user from API: ${e.message}", e)
+            null
         }
     }
 
@@ -98,20 +79,19 @@ class UserRepository @Inject constructor(
             val updatedUser = userApiService.updateUserProfile(userId, user)
             Log.d(TAG, "User updated on API")
 
-            // 2. Update in local database
+            // 2. Cache locally as synced
             userDao.insertUser(updatedUser.toEntity().copy(isSynced = true))
             Log.d(TAG, "User updated in local database")
 
             Result.success(updatedUser)
         } catch (e: Exception) {
-            Log.e(TAG, "Error updating user: ${e.message}")
+            Log.e(TAG, "Error updating user: ${e.message}",e)
 
-            // 3. Save locally with sync flag = false for later sync
+            // 3. Cache locally for later sync
             userDao.insertUser(user.toEntity().copy(isSynced = false))
             Log.d(TAG, "User saved locally (pending sync)")
 
-            // Return success with local data UI phase
-            Result.success(user)
+            Result.failure(e)
         }
     }
 
@@ -141,18 +121,18 @@ class UserRepository @Inject constructor(
 
             Result.success(updatedUser)
         } catch (e: Exception) {
-            Log.e(TAG, "Error updating settings: ${e.message}")
+            Log.e(TAG, "Error updating settings: ${e.message}", e)
 
-            // Return success with local data for UI phase
+            // Cache locally for later sync
             val currentUser = userDao.getUserById(userId)?.toDomain() ?: User(userId = userId)
             val updatedUser = currentUser.copy(
                 language = language,
                 notificationsEnabled = notificationsEnabled,
                 biometricEnabled = biometricEnabled
             )
-            userDao.insertUser(updatedUser.toEntity().copy(isSynced = true))
+            userDao.insertUser(updatedUser.toEntity().copy(isSynced = false))
 
-            Result.success(updatedUser)
+            Result.failure(e)
         }
     }
 

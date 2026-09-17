@@ -20,25 +20,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mova.data.models.User
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.collectAsState
 
 @Composable
 fun EditProfileScreen(
+    viewModel: UserViewModel = hiltViewModel(),
     onBackPressed: () -> Unit = {},
-    onSave: (User) -> Unit = {} // Callback when user saves changes
 ) {
-    // Log screen entry
-    Log.d("EditProfileScreen", "Edit Profile screen loaded")
+    // Get current user from ViewModel
+    val uiState by viewModel.uiState.collectAsState()
+    val currentUser = uiState.user
 
-    // TODO: Replace with actual user data from ViewModel
-    // Current user data (mock data - will be fetched from ViewModel)
-    var fullName by remember { mutableStateOf("Katlego Mokwena") }
-    var height by remember { mutableStateOf("178") }
-    var weight by remember { mutableStateOf("76") }
-    var age by remember { mutableStateOf("26") }
-    var selectedGender by remember { mutableStateOf("Male") }
-    var selectedFitnessLevel by remember { mutableStateOf("Intermediate") }
-    var fitnessGoal by remember { mutableStateOf("Burn 2000 cal weekly") }
+    // Log screen entry
+    Log.d("EditProfileScreen", "Edit Profile screen loaded with user: ${currentUser?.fullName}")
+
+    // Initialize form fields from the CURRENT user
+    var fullName by remember(currentUser) { mutableStateOf(currentUser?.fullName ?: "") }
+    var height by remember(currentUser) { mutableStateOf(currentUser?.height.toString() ?: "") }
+    var weight by remember(currentUser) { mutableStateOf(currentUser?.weight.toString() ?: "") }
+    var age by remember(currentUser) { mutableStateOf(currentUser?.age.toString() ?: "") }
+    var selectedGender by remember(currentUser) { mutableStateOf(currentUser?.gender ?: "Prefer not to say") }
+    var selectedFitnessLevel by remember(currentUser) { mutableStateOf(currentUser?.fitnessLevel ?: "Intermediate") }
+    var fitnessGoal by remember(currentUser) { mutableStateOf(currentUser?.fitnessGoal ?: "") }
 
     // Options for dropdowns
     val genderOptions = listOf("Male", "Female", "Other", "Prefer not to say")
@@ -293,18 +297,21 @@ fun EditProfileScreen(
                         val validationErrors = validateForm(fullName, height, weight, age)
                         errors = validationErrors
 
-                        if (validationErrors.isEmpty()) {
-                            // Create updated user object
-                            val updatedUser = User(
+                        if (validationErrors.isEmpty() && currentUser != null) {
+                            // Create updated user preserving all existing fields
+                            val updatedUser = currentUser.copy(
                                 fullName = fullName,
                                 location = "Johannesburg, SA", // TODO: Add location field
                                 height = height.toDoubleOrNull(),
                                 weight = weight.toDoubleOrNull(),
                                 age = age.toIntOrNull(),
-                                fitnessLevel = selectedFitnessLevel
+                                gender = selectedGender,
+                                fitnessLevel = selectedFitnessLevel,
+                                fitnessGoal = fitnessGoal
                             )
-                            Log.d("EditProfileScreen", "Saving user: $updatedUser")
-                            onSave(updatedUser)
+                            Log.d("EditProfileScreen", "Saving user via ViewModel")
+
+                            viewModel.updateUserProfile(updatedUser)
                             onBackPressed()
                         } else {
                             Log.w("EditProfileScreen", "Validation errors: $validationErrors")
