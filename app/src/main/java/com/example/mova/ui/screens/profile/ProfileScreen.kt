@@ -119,7 +119,7 @@ fun ProfileContent(
     // Log the user data being displayed
     Log.d("ProfileContent", "Displaying user: ${user.fullName}, ${user.weight}kg, ${user.age} yrs")
 
-    // Fitness objectives - TODO: Fetch from ViewModel/API
+    // Fitness objectives
     val objectives = listOf(
         "Burn 2000 cal weekly",
         "Complete 4 full body workouts",

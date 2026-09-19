@@ -35,7 +35,11 @@ class MainActivity : ComponentActivity() {
 fun MovaApp() {
     val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry?.destination?.route ?: Screen.Workout.route
+    val currentRoute = currentBackStackEntry?.destination?.route ?: "signup"
+
+    // Screens where the bottom nav bar should be hidden
+    val authRoutes = setOf("signup", "login")
+    val showBottomBar = currentRoute !in authRoutes
 
     Scaffold(
         bottomBar = {

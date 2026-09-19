@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit
 // Creates and manages the Retrofit client used to communicate with the server
 object RetrofitClient {
 
-    // TODO: Replace with actual server URL
     private const val BASE_URL = "http://10.0.2.2:3000/" // Android emulator localhost
 
     // Intercepts HTTP requests and reponses so they can be viewed in Logcat
@@ -36,5 +35,10 @@ object RetrofitClient {
     // Creates the UserApiService only when it is 1st needed
     val userApiService: UserApiService by lazy {
         retrofit.create(UserApiService::class.java)
+    }
+
+    // for auth (register + login).
+    val authApiService: AuthApiService by lazy {
+        retrofit.create(AuthApiService::class.java)
     }
 }

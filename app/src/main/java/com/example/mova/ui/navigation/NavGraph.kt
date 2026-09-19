@@ -7,6 +7,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.mova.ui.screens.authentication.RegisterScreen
+import com.example.mova.ui.screens.authentication.LoginScreen
 import com.example.mova.ui.screens.profile.ProfileScreen
 import com.example.mova.ui.screens.profile.EditProfileScreen
 import com.example.mova.ui.screens.profile.SettingsScreen
@@ -27,13 +29,45 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
 fun MovaNavGraph(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    startDestination: String = Screen.Workout.route
+    startDestination: String = "signup"
 ) {
     NavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier
     ) {
+        // ===== Auth =====
+        composable("signup") {
+            RegisterScreen(
+                onNavigateToLogin = {
+                    navController.navigate("login") {
+                        popUpTo("signup") { inclusive = true }
+                    }
+                },
+                onSignUpSuccess = {
+                    navController.navigate(Screen.Workout.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("login") {
+            LoginScreen(
+                onNavigateToSignUp = {
+                    navController.navigate("signup") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
+                onLoginSuccess = {
+                    navController.navigate(Screen.Workout.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // ===== Main app =====
         composable(Screen.Workout.route) {
             WorkoutScreen()
         }
@@ -49,7 +83,7 @@ fun MovaNavGraph(
                 onNavigateToEdit = { navController.navigate(route = "edit profile") }
             )
         }
-        composable("edit profile") {
+        composable("edit_profile") {
             EditProfileScreen(
                 onBackPressed = { navController.popBackStack() }
             )
