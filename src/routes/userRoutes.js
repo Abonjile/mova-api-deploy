@@ -29,6 +29,7 @@ router.put('/:userId', async (req, res) => {
     if (gender !== undefined) update.gender = gender;
     if (fitnessLevel !== undefined) update.fitnessLevel = fitnessLevel;
     if (fitnessGoal !== undefined) update.fitnessGoal = fitnessGoal;
+    if (location !== undefined) update.location = location;
     
     const user = await User.findOneAndUpdate(
       { userId: req.params.userId },
@@ -46,7 +47,7 @@ router.put('/:userId', async (req, res) => {
 router.put('/:userId/settings', async (req, res) => {
   try {
     const { language, notificationsEnabled, biometricEnabled, speechEnabled} = req.body;
-    const update = {updateAt: new Date() };
+    const update = {updatedAt: new Date() };
     if (language !== undefined) update.language = language;
     if (notificationsEnabled !== undefined) update.notificationsEnabled = notificationsEnabled;
     if (biometricEnabled !== undefined) update.biometricEnabled = biometricEnabled;
