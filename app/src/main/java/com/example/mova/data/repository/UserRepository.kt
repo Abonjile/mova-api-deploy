@@ -3,6 +3,7 @@ package com.example.mova.data.repository
 import android.util.Log
 import com.example.mova.data.local.MovaDatabase
 import com.example.mova.data.local.UserDao
+import com.example.mova.data.models.SettingsRequest
 import com.example.mova.data.models.User
 import com.example.mova.data.models.toDomain
 import com.example.mova.data.models.toEntity
@@ -107,10 +108,10 @@ class UserRepository @Inject constructor(
         return try {
             Log.d(TAG, "Updating settings for user: $userId")
 
-            val settings = mapOf(
-                "language" to language,
-                "notificationsEnabled" to notificationsEnabled,
-                "biometricEnabled" to biometricEnabled
+            val settings = SettingsRequest(
+                language = language,
+                notificationsEnabled = notificationsEnabled,
+                biometricEnabled = biometricEnabled
             )
 
             val updatedUser = userApiService.updateUserSettings(userId, settings)

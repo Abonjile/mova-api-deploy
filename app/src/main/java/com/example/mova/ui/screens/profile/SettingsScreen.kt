@@ -39,9 +39,9 @@ fun SettingsScreen(
     var darkMode by remember { mutableStateOf(false) }
     var largeText by remember { mutableStateOf(true) }
     var highContrast by remember { mutableStateOf(false) }
-    var biometricAuth by remember(currentUser) { mutableStateOf(currentUser?.biometricEnabled ?: false) }
-    var notificationsEnabled by remember(currentUser) { mutableStateOf(currentUser?.notificationsEnabled ?: true) }
-    var selectedLanguage by remember(currentUser) { mutableStateOf(currentUser?.language ?: "English") }
+    var biometricAuth by remember(currentUser?.userId) { mutableStateOf(currentUser?.biometricEnabled ?: false) }
+    var notificationsEnabled by remember(currentUser?.userId) { mutableStateOf(currentUser?.notificationsEnabled ?: true) }
+    var selectedLanguage by remember(currentUser?.userId) { mutableStateOf(currentUser?.language ?: "English") }
 
     // Supported South African languages (from design doc)
     val languages = listOf(

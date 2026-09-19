@@ -1,5 +1,6 @@
 package com.example.mova.data.remote
 
+import com.example.mova.data.models.SettingsRequest
 import com.example.mova.data.models.User
 import retrofit2.http.*
 
@@ -19,6 +20,6 @@ interface UserApiService {
     @PUT("api/users/{userId}/settings")
     suspend fun updateUserSettings(
         @Path("userId") userId: String,
-        @Body settings: Map<String, Any>
+        @Body settings: SettingsRequest
     ): User
 }
