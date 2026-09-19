@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mova.data.repository.AuthRepository
+import com.example.mova.data.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +19,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     companion object {
@@ -30,11 +32,14 @@ class AuthViewModel @Inject constructor(
      *  - isLoading: shows spinner on Continue button
      *  - error: shows inline error message
      *  - success: triggers navigation via LaunchedEffect
+     *  - isNewRegistration true if success came from registration (route to onboarding),
+     *      false if from login (route straight to main app)
      */
     data class UiState(
         val isLoading: Boolean = false,
         val error: String? = null,
-        val success: Boolean = false
+        val success: Boolean = false,
+        val isNewRegistration: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -53,8 +58,25 @@ class AuthViewModel @Inject constructor(
 
             authRepository.register(fullName, email, password)
                 .onSuccess { response ->
-                    Log.d(TAG, "Registration success: ${response.message}")
-                    _uiState.update { it.copy(isLoading = false, success = true) }
+                    val userId = response.user?.userId
+                    // A successful HTTP response without a userId,
+                    // is treated as a failure since we cannot establish a session.
+                    if (userId == null) {
+                        Log.e(TAG, "Registration succeeded but no userId returned")
+                        _uiState.update {
+                            it.copy(isLoading = false, error = "Registration response missing userId")
+                        }
+                        return@onSuccess
+                    }
+
+                    sessionManager.setUserId(userId)
+                    sessionManager.setOnboardingComplete(false)
+                    Log.d(TAG, "Registration success, session started for $userId")
+
+                    // Mark as NEW registration so NavGraph routes to onboarding
+                    _uiState.update {
+                        it.copy(isLoading = false, success = true, isNewRegistration = true)
+                    }
                 }
                 .onFailure { e ->
                     Log.e(TAG, "Registration failed", e)
@@ -70,17 +92,37 @@ class AuthViewModel @Inject constructor(
 
     /**
      * Login with email + password.
-     * Called from LoginScreen on Continue tap (after validation passes).
+     *
+     * On success:
+     *      *  - Persists the returned userId in SessionManager
+     *      *  - Emits UiState with success=true and isNewRegistration=false
+     *      *    so the NavGraph routes directly to the main app (skipping onboarding).
      */
     fun login(email: String, password: String) {
         viewModelScope.launch {
             Log.d(TAG, "login() called for: $email")
+            // Reset error/success flags before starting a new request.
             _uiState.update { it.copy(isLoading = true, error = null, success = false) }
 
             authRepository.login(email, password)
                 .onSuccess { response ->
-                    Log.d(TAG, "Login success: ${response.message}")
-                    _uiState.update { it.copy(isLoading = false, success = true) }
+                    val userId = response.user?.userId
+                    // Same defensive check as register(): no userId → cannot start session.
+                    if (userId == null) {
+                        Log.e(TAG, "Login succeeded but no userId returned")
+                        _uiState.update {
+                            it.copy(isLoading = false, error = "Login response missing userId")
+                        }
+                        return@onSuccess
+                    }
+
+                    sessionManager.setUserId(userId)
+                    Log.d(TAG, "Login success, session started for $userId")
+
+                    // Existing user: go straight to main app (not onboarding)
+                    _uiState.update {
+                        it.copy(isLoading = false, success = true, isNewRegistration = false)
+                    }
                 }
                 .onFailure { e ->
                     Log.e(TAG, "Login failed", e)
@@ -93,6 +135,7 @@ class AuthViewModel @Inject constructor(
                 }
         }
     }
+
 
     // SSO STUBS
     // TODO: Wire real Google / Apple / Biometric flows in a future phase.
@@ -118,7 +161,9 @@ class AuthViewModel @Inject constructor(
     // UTILITY
 
     /**
-     * Clears loading/error/success. Call this after a navigation event
+     * Clears loading/error/success.
+     *
+     * Call this after a navigation event,
      * so returning to the screen doesn't immediately re-trigger the effect.
      */
     fun resetState() {

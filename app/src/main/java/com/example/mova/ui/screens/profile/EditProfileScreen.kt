@@ -43,6 +43,7 @@ fun EditProfileScreen(
 
     // Initialize form fields from the CURRENT user
     var fullName by remember(currentUser) { mutableStateOf(currentUser?.fullName ?: "") }
+    var location by remember(currentUser) { mutableStateOf(currentUser?.location ?: "Johannesburg, SA") }
     var height by remember(currentUser) { mutableStateOf(currentUser?.height.toString() ?: "") }
     var weight by remember(currentUser) { mutableStateOf(currentUser?.weight.toString() ?: "") }
     var age by remember(currentUser) { mutableStateOf(currentUser?.age.toString() ?: "") }
@@ -270,6 +271,17 @@ fun EditProfileScreen(
                         error = errors["fitnessGoal"],
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    EditProfileTextField(
+                        label = "Location",
+                        value = location,
+                        onValueChange = {
+                            location = it
+                            Log.d("EditProfileScreen", "Location updated: $it")
+                        },
+                        error = errors["location"],
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
 
@@ -307,7 +319,7 @@ fun EditProfileScreen(
                             // Create updated user preserving all existing fields
                             val updatedUser = currentUser.copy(
                                 fullName = fullName,
-                                location = "Johannesburg, SA", // TODO: Add location field
+                                location = location,
                                 height = height.toDoubleOrNull(),
                                 weight = weight.toDoubleOrNull(),
                                 age = age.toIntOrNull(),

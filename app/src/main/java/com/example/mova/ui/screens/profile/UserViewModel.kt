@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mova.data.models.User
 import com.example.mova.data.repository.UserRepository
+import com.example.mova.data.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,12 +16,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     companion object {
         private const val TAG = "UserViewModel"
-        private const val DEFAULT_USER_ID = "user_123" // TODO: Get from Auth
     }
 
     // UI State
@@ -44,11 +45,18 @@ class UserViewModel @Inject constructor(
      */
     fun loadUser() {
         viewModelScope.launch {
+            val userId = sessionManager.getUserId()
+            if (userId == null) {
+                Log.w(TAG, "No active session — cannot load user")
+                _uiState.update { it.copy(isLoading = false, error = "Not logged in") }
+                return@launch
+            }
+
             Log.d(TAG, "Loading user...")
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             try {
-                val user = userRepository.getUser(DEFAULT_USER_ID)
+                val user = userRepository.getUser(userId)
                 if (user != null) {
                     Log.d(TAG, "User loaded: ${user.fullName}")
                     _uiState.update { it.copy(isLoading = false, user = user) }
@@ -72,10 +80,14 @@ class UserViewModel @Inject constructor(
      */
     fun updateUserProfile(user: User) {
         viewModelScope.launch {
+            val userId = sessionManager.getUserId() ?: run {
+                Log.w(TAG, "Cannot update — no session")
+                return@launch
+            }
             Log.d(TAG, "Updating user: ${user.fullName}")
             _uiState.update { it.copy(isSaving = true, error = null) }
 
-            val result = userRepository.updateUserProfile(DEFAULT_USER_ID, user)
+            val result = userRepository.updateUserProfile(userId, user)
 
             result.onSuccess { updatedUser ->
                 Log.d(TAG, "User updated successfully")
@@ -100,22 +112,22 @@ class UserViewModel @Inject constructor(
         biometricEnabled: Boolean
     ) {
         viewModelScope.launch {
+            val userId = sessionManager.getUserId() ?: run {
+                Log.w(TAG, "Cannot update settings — no session")
+                return@launch
+            }
+
             Log.d(TAG, "Updating settings: language=$language")
 
-            val result = userRepository.updateSettings(
-                DEFAULT_USER_ID,
-                language,
-                notificationsEnabled,
-                biometricEnabled
-            )
-
-            result.onSuccess { updatedUser ->
-                Log.d(TAG, "Settings updated successfully")
-                _uiState.update { it.copy(user = updatedUser) }
-            }.onFailure { error ->
-                Log.e(TAG, "Failed to update settings: ${error.message}")
-                _uiState.update { it.copy(error = error.message) }
-            }
+            userRepository.updateSettings(userId, language, notificationsEnabled, biometricEnabled)
+                .onSuccess { updatedUser ->
+                    Log.d(TAG, "Settings updated successfully")
+                    _uiState.update { it.copy(user = updatedUser) }
+                }
+                .onFailure { error ->
+                    Log.e(TAG, "Failed to update settings: ${error.message}")
+                    _uiState.update { it.copy(error = error.message) }
+                }
         }
     }
 
@@ -124,8 +136,9 @@ class UserViewModel @Inject constructor(
      */
     fun syncData() {
         viewModelScope.launch {
+            val userId = sessionManager.getUserId() ?: return@launch
             Log.d(TAG, "Syncing data...")
-            userRepository.syncOfflineData(DEFAULT_USER_ID)
+            userRepository.syncOfflineData(userId)
             loadUser() // Refresh after sync
         }
     }
