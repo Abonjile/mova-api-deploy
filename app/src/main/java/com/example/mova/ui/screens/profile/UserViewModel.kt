@@ -103,6 +103,30 @@ class UserViewModel @Inject constructor(
         }
     }
 
+    /** Add a single objective (ignores blanks + duplicates). */
+    fun addObjective(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return
+        val current = _uiState.value.user ?: return
+        if (current.objectives.contains(trimmed)) return
+
+        val updated = current.copy(objectives = current.objectives + trimmed)
+        updateUserProfile(updated)
+    }
+
+    /** Remove an objective by value. */
+    fun removeObjective(text: String) {
+        val current = _uiState.value.user ?: return
+        val updated = current.copy(objectives = current.objectives - text)
+        updateUserProfile(updated)
+    }
+
+    /** Replace the whole list (used by a bulk editor). */
+    fun setObjectives(objectives: List<String>) {
+        val current = _uiState.value.user ?: return
+        updateUserProfile(current.copy(objectives = objectives))
+    }
+
     /**
      * Update user settings
      */
@@ -140,6 +164,16 @@ class UserViewModel @Inject constructor(
             Log.d(TAG, "Syncing data...")
             userRepository.syncOfflineData(userId)
             loadUser() // Refresh after sync
+        }
+    }
+
+    fun logout(onLoggedOut: () -> Unit) {
+        viewModelScope.launch {
+            Log.d(TAG, "Logging out...")
+            sessionManager.clear()
+            // Reset UI state so a new login doesn't see stale data
+            _uiState.value = UiState()
+            onLoggedOut()
         }
     }
 }

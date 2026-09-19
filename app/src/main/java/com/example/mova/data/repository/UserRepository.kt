@@ -97,6 +97,16 @@ class UserRepository @Inject constructor(
     }
 
     /**
+     * Replace the full objectives list for a user.
+     * Pass an empty list to clear all objectives.
+     */
+    suspend fun updateObjectives(userId: String, objectives: List<String>): Result<User> {
+        val current = getUser(userId) ?: return Result.failure(Exception("User not found"))
+        val updated = current.copy(objectives = objectives)
+        return updateUserProfile(userId, updated)
+    }
+
+    /**
      * Update user settings
      */
     suspend fun updateSettings(

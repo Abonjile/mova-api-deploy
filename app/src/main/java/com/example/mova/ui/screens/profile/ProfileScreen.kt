@@ -10,12 +10,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
 import com.example.mova.ui.theme.MovaBlue
 import com.example.mova.ui.theme.MovaTeal
@@ -37,7 +39,8 @@ import com.example.mova.data.models.User
 fun ProfileScreen(
     viewModel: UserViewModel = hiltViewModel(),
     onNavigateToSettings: () -> Unit = {},
-    onNavigateToEdit: () -> Unit = {}
+    onNavigateToEdit: () -> Unit = {},
+    onLoggedOut: () -> Unit = {}
 ) {
     // Collect UI state from ViewModel
     val uiState by viewModel.uiState.collectAsState()
@@ -89,7 +92,10 @@ fun ProfileScreen(
                 ProfileContent(
                     user = uiState.user!!,
                     onNavigateToSettings = onNavigateToSettings,
-                    onNavigateToEdit = onNavigateToEdit
+                    onNavigateToEdit = onNavigateToEdit,
+                    onLogout = { viewModel.logout(onLoggedOut) },
+                    onAddObjective = { viewModel.addObjective(it) },
+                    onRemoveObjective = { viewModel.removeObjective(it) }
                 )
             }
 
@@ -114,17 +120,13 @@ fun ProfileScreen(
 fun ProfileContent(
     user: User,
     onNavigateToSettings: () -> Unit,
-    onNavigateToEdit: () -> Unit
+    onNavigateToEdit: () -> Unit,
+    onLogout: () -> Unit,
+    onAddObjective: (String) -> Unit,      // ← NEW
+    onRemoveObjective: (String) -> Unit
 ) {
     // Log the user data being displayed
     Log.d("ProfileContent", "Displaying user: ${user.fullName}, ${user.weight}kg, ${user.age} yrs")
-
-    // Fitness objectives
-    val objectives = listOf(
-        "Burn 2000 cal weekly",
-        "Complete 4 full body workouts",
-        "Maintain 7-day active streak"
-    )
 
     Column(
         modifier = Modifier
@@ -280,16 +282,17 @@ fun ProfileContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // ===== Fitness Objectives Card =====
+        // ===== Fitness Objectives Card (list, optional) =====
+        var showAddDialog by remember { mutableStateOf(false) }
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MovaBlue),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                // Card Header with Add button
+            Column(modifier = Modifier.padding(16.dp)) {
+
+                // Header with + button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -302,7 +305,7 @@ fun ProfileContent(
                         color = Color.White
                     )
                     IconButton(
-                        onClick = { /* TODO: Show dialog to add new objective */ },
+                        onClick = { showAddDialog = true },
                         modifier = Modifier.size(24.dp)
                     ) {
                         Text(
@@ -316,15 +319,89 @@ fun ProfileContent(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // List of objectives
-                objectives.forEach { objective ->
+                // Empty state
+                if (user.objectives.isEmpty()) {
+                    Text(
+                        text = "No objectives yet — tap + to add one",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                } else {
+                    user.objectives.forEach { objective ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(MovaTeal)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = objective,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(
+                                onClick = { onRemoveObjective(objective) },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Text(
+                                    text = "✕",
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add-objective dialog
+        if (showAddDialog) {
+            var input by remember { mutableStateOf("") }
+            AlertDialog(
+                onDismissRequest = { showAddDialog = false },
+                title = { Text("Add Objective") },
+                text = {
+                    OutlinedTextField(
+                        value = input,
+                        onValueChange = { input = it },
+                        singleLine = true,
+                        label = { Text("e.g. Burn 2000 cal weekly") }
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onAddObjective(input)
+                            showAddDialog = false
+                        },
+                        enabled = input.isNotBlank()
+                    ) { Text("Add") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showAddDialog = false }) { Text("Cancel") }
+                }
+            )
+
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // The user's actual goal (or empty state)
+                val goal = user.fitnessGoal?.takeIf { it.isNotBlank() }
+                if (goal != null) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Green checkmark dot
                         Box(
                             modifier = Modifier
                                 .size(8.dp)
@@ -333,25 +410,47 @@ fun ProfileContent(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = objective,
+                            text = goal,
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White,
                             modifier = Modifier.weight(1f)
                         )
-                        // Delete button for each objective
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = "Delete Objective",
-                            tint = Color.White.copy(alpha = 0.7f)
-                        )
                     }
+                } else {
+                    Text(
+                        text = "No goal set yet — tap edit to add one",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedButton(
+            onClick = {
+                Log.d("ProfileScreen", "Logout tapped")
+                onLogout()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = Color(0xFFDC2626)   // red text
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(
+                text = "Log Out",
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
     }
-}
+
 
 // STAT CARD - REUSABLE COMPONENT
 

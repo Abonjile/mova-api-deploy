@@ -20,7 +20,9 @@ object DatabaseModule {
             context,
             MovaDatabase::class.java,
             "mova_database" // Name of the SQLite database file on disk
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides // Exposes UserDao for injection, derived from the database instance

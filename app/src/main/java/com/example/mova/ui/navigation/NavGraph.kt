@@ -103,7 +103,12 @@ fun MovaNavGraph(
         composable(Screen.Profile.route) {
             ProfileScreen(
                 onNavigateToSettings = { navController.navigate("settings") },
-                onNavigateToEdit = { navController.navigate(route = "edit_profile") }
+                onNavigateToEdit = { navController.navigate(route = "edit_profile") },
+                onLoggedOut = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }   // clear entire back stack
+                    }
+                }
             )
         }
         composable("edit_profile") {
