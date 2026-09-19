@@ -43,30 +43,32 @@ fun MovaApp() {
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                val screens = listOf(
-                    Screen.Challenges,
-                    Screen.Rewards,
-                    Screen.Workout,
-                    Screen.Profile,
-                    Screen.Analytics
-                )
-
-                screens.forEach { screen ->
-                    NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = screen.label) },
-                        label = { Text(screen.label) },
-                        selected = currentRoute == screen.route,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
+            if (showBottomBar) {
+                NavigationBar {
+                    val screens = listOf(
+                        Screen.Challenges,
+                        Screen.Rewards,
+                        Screen.Workout,
+                        Screen.Profile,
+                        Screen.Analytics
                     )
+
+                    screens.forEach { screen ->
+                        NavigationBarItem(
+                            icon = { Icon(screen.icon, contentDescription = screen.label) },
+                            label = { Text(screen.label) },
+                            selected = currentRoute == screen.route,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
