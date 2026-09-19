@@ -18,7 +18,7 @@ router.get('/:userId', async (req, res) => {
 // PUT /api/users/:userId — Update user profile
 router.put('/:userId', async (req, res) => {
   try {
-    const { fullName, weight, height, age, gender, fitnessLevel, fitnessGoal, location } = req.body;
+    const { fullName, weight, height, age, gender, fitnessLevel, fitnessGoal,objectives, location } = req.body;
     
     // Build update object with only provided fields
     const update = { updatedAt: new Date() };
@@ -29,6 +29,7 @@ router.put('/:userId', async (req, res) => {
     if (gender !== undefined) update.gender = gender;
     if (fitnessLevel !== undefined) update.fitnessLevel = fitnessLevel;
     if (fitnessGoal !== undefined) update.fitnessGoal = fitnessGoal;
+    if (objectives !== undefined) update.objectives = objectives;  
     if (location !== undefined) update.location = location;
     
     const user = await User.findOneAndUpdate(

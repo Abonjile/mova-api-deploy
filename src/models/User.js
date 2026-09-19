@@ -24,6 +24,7 @@ const UserSchema = new mongoose.Schema({
   weight: {type: Number},
   fitnessLevel: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced', 'Athlete'], default: 'Beginner' },
   fitnessGoal: {type: String},
+  objectives: { type: [String], default: [] },
   location: { type: String },
 
   // Settings fields
