@@ -15,13 +15,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import com.example.mova.ui.theme.MovaBlue
+import com.example.mova.ui.theme.MovaTeal
+import com.example.mova.ui.theme.MovaOffWhite
+import com.example.mova.ui.theme.MovaGray
+import com.example.mova.ui.theme.MovaLightGray
+import com.example.mova.ui.theme.MovaBlack
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 
-// Colors are imported from ProfileScreen (MovaBlue, MovaTeal, etc.), will be moved to a shared file later
 
 @Composable
 fun SettingsScreen(

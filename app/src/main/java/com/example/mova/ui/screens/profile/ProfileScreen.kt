@@ -17,6 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import com.example.mova.ui.theme.MovaBlue
+import com.example.mova.ui.theme.MovaTeal
+import com.example.mova.ui.theme.MovaOffWhite
+import com.example.mova.ui.theme.MovaGray
+import com.example.mova.ui.theme.MovaLightGray
+import com.example.mova.ui.theme.MovaBlack
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,14 +30,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.collectAsState
 import com.example.mova.data.models.User
-
-// Brand Colors - Matching the design mockup
-val MovaBlue = Color(0xFF1E3A8A)
-val MovaTeal = Color(0xFF2DD4BF)
-val MovaOffWhite = Color(0xFFF8FAFC)
-val MovaGray = Color(0xFF64748B)
-val MovaLightGray = Color(0xFFF1F5F9)
-val MovaBlack = Color(0xFF0F172A)
 
 // PROFILE SCREEN - MAIN ENTRY POINT
 
