@@ -18,22 +18,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
 
 // Colors are imported from ProfileScreen (MovaBlue, MovaTeal, etc.), will be moved to a shared file later
 
 @Composable
 fun SettingsScreen(
+    viewModel: UserViewModel = hiltViewModel(),
     onBackPressed: () -> Unit = {} // Navigation callback to return to Profile
 ) {
+    // Get current user from ViewModel
+    val uiState by viewModel.uiState.collectAsState()
+    val currentUser = uiState.user
+
     // Log screen entry for debugging
-    Log.d("SettingsScreen", "Settings screen loaded")
+    Log.d("SettingsScreen", "Settings screen loaded with user: ${currentUser?.fullName}")
 
     // State variables for settings toggles
     var darkMode by remember { mutableStateOf(false) }
     var largeText by remember { mutableStateOf(true) }
     var highContrast by remember { mutableStateOf(false) }
-    var biometricAuth by remember { mutableStateOf(false) }
-    var selectedLanguage by remember { mutableStateOf("English") }
+    var biometricAuth by remember(currentUser) { mutableStateOf(currentUser?.biometricEnabled ?: false) }
+    var notificationsEnabled by remember(currentUser) { mutableStateOf(currentUser?.notificationsEnabled ?: true) }
+    var selectedLanguage by remember(currentUser) { mutableStateOf(currentUser?.language ?: "English") }
 
     // Supported South African languages (from design doc)
     val languages = listOf(
@@ -234,8 +242,13 @@ fun SettingsScreen(
             // ===== Save Button (optional - or settings auto-save) =====
             Button(
                 onClick = {
-                    Log.d("SettingsScreen", "Settings saved: DarkMode=$darkMode, Language=$selectedLanguage")
-                    onBackPressed() // Return to Profile after saving
+                    Log.d("SettingsScreen", "Saving settings: lang=$selectedLanguage, notif=$notificationsEnabled, bio=$biometricAuth")
+                    viewModel.updateSettings(
+                        language = selectedLanguage,
+                        notificationsEnabled = notificationsEnabled,
+                        biometricEnabled = biometricAuth
+                    )
+                    onBackPressed()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
