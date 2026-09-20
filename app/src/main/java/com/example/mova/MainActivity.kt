@@ -13,14 +13,22 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mova.ui.navigation.MovaNavGraph
 import com.example.mova.ui.navigation.Screen
 import com.example.mova.ui.theme.MovaTheme
+import com.example.mova.data.session.SessionManager
+import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var sessionManager: SessionManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MovaTheme {
+            // Observes dark mode preference from DataStore
+            val darkMode by sessionManager.darkMode.collectAsState()
+
+            MovaTheme(darkTheme = darkMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {

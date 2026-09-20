@@ -1,6 +1,7 @@
 package com.example.mova.ui.screens.profile
 
 import android.util.Log
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mova.data.models.User
@@ -35,9 +36,19 @@ class UserViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    // Dark mode state backed by SessionManager
+    private val _darkMode = MutableStateFlow(false)
+    val darkMode: StateFlow<Boolean> = _darkMode.asStateFlow()
+
     init {
         Log.d(TAG, "UserViewModel initialized")
         loadUser()
+        // Observes dark mode from session
+        viewModelScope.launch {
+            sessionManager.darkMode.collect { enabled ->
+                _darkMode.value = enabled
+            }
+        }
     }
 
     /**
@@ -152,6 +163,13 @@ class UserViewModel @Inject constructor(
                     Log.e(TAG, "Failed to update settings: ${error.message}")
                     _uiState.update { it.copy(error = error.message) }
                 }
+        }
+    }
+
+    // Persist dark mode preference via SessionManager
+    fun setDarkMode(enabled: Boolean) {
+        viewModelScope.launch {
+            sessionManager.setDarkMode(enabled)
         }
     }
 

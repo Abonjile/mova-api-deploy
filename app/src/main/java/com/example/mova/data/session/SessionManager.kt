@@ -7,8 +7,15 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,7 +25,10 @@ private val Context.sessionDataStore by preferencesDataStore(name = "mova_sessio
 /**
  * Persistent session manager backed by DataStore Preferences.
  *
- * Persists the currently logged-in user's ID across app restarts.
+ * Persists:
+ * - the currently logged-in user's ID across app restarts,
+ * - onboarding flag,
+ * - dark mode toggle
  */
 @Singleton
 class SessionManager @Inject constructor(
@@ -29,8 +39,13 @@ class SessionManager @Inject constructor(
         private const val TAG = "SessionManager"
         private val KEY_USER_ID = stringPreferencesKey("user_id")
         private val KEY_ONBOARDED = booleanPreferencesKey("onboarding_complete")
+        private val KEY_DARK_MODE = booleanPreferencesKey("dark_mode")
     }
 
+    // Internal scope for collecting DataStore flows into StateFlows
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    // Onboarding
     suspend fun isOnboardingComplete(): Boolean {
         return context.sessionDataStore.data.first()[KEY_ONBOARDED] ?: false
     }
@@ -83,4 +98,27 @@ class SessionManager @Inject constructor(
      * Convenience check used by the nav layer to decide start destination.
      */
     suspend fun isLoggedIn(): Boolean = getUserId() != null
+
+    // Dark mode (controlled by user's device perference)
+    /**
+     * Reacts to dark mode flag,
+     * emits current value immediately and on every change
+     * */
+    private val _darkMode = MutableStateFlow(false)
+    val darkMode: StateFlow<Boolean> = _darkMode.asStateFlow()
+
+    init {
+        // Primes the StateFlow with the persisted value when app starts
+        scope.launch {
+            val initial = context.sessionDataStore.data.first()[KEY_DARK_MODE] ?: false
+            Log.d(TAG,"darkMode initial -> $initial")
+            _darkMode.value = initial
+        }
+    }
+
+    suspend fun setDarkMode(enabled: Boolean) {
+        Log.d(TAG, "darkMode -> $enabled")
+        _darkMode.value = enabled
+        context.sessionDataStore.edit { it[KEY_DARK_MODE] = enabled }
+    }
 }

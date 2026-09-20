@@ -59,7 +59,7 @@ fun EditProfileScreen(
     var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
     Scaffold(
-        containerColor = MovaOffWhite
+        containerColor = MaterialTheme.colorScheme.onBackground
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -90,7 +90,7 @@ fun EditProfileScreen(
                         text = "Edit Profile",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MovaBlue
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
@@ -380,7 +380,7 @@ fun EditProfileTextField(
             text = label,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
-            color = MovaBlue
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(4.dp))
         OutlinedTextField(
@@ -427,7 +427,7 @@ fun EditProfileDropdown(
             text = label,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
-            color = MovaBlue
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(4.dp))
         OutlinedButton(
@@ -448,7 +448,8 @@ fun EditProfileDropdown(
                 Text(
                     text = selectedOption,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (selectedOption.isNotEmpty()) MovaBlack else MovaGray
+                    color = if (selectedOption.isNotEmpty()) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+
                 )
                 Text(
                     text = "▼",
@@ -476,7 +477,8 @@ fun EditProfileDropdown(
                         ) {
                             Text(
                                 text = option,
-                                color = if (option == selectedOption) MovaTeal else MovaBlack
+                                color = if (option == selectedOption) MovaTeal else MaterialTheme.colorScheme.onBackground
+
                             )
                             if (option == selectedOption) {
                                 Icon(

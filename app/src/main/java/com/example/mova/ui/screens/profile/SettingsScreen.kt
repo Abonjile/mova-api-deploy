@@ -41,7 +41,7 @@ fun SettingsScreen(
     Log.d("SettingsScreen", "Settings screen loaded with user: ${currentUser?.fullName}")
 
     // State variables for settings toggles
-    var darkMode by remember { mutableStateOf(false) }
+    val darkMode by viewModel.darkMode.collectAsState()
     var largeText by remember { mutableStateOf(true) }
     var highContrast by remember { mutableStateOf(false) }
     var biometricAuth by remember(currentUser?.userId) { mutableStateOf(currentUser?.biometricEnabled ?: false) }
@@ -59,7 +59,7 @@ fun SettingsScreen(
 
     // Main screen layout
     Scaffold(
-        containerColor = MovaOffWhite
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -91,7 +91,7 @@ fun SettingsScreen(
                         text = "Settings",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MovaBlue
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
@@ -122,9 +122,8 @@ fun SettingsScreen(
                         subtitle = "Optimise display for dark environments",
                         checked = darkMode,
                         onCheckedChange = {
-                            darkMode = it
+                            viewModel.setDarkMode(it)
                             Log.d("SettingsScreen", "Dark Mode toggled: $it")
-                            // TODO: Apply dark mode theme change
                         }
                     )
                     Divider(
@@ -217,14 +216,13 @@ fun SettingsScreen(
                                 text = language,
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.weight(1f),
-                                color = if (language == selectedLanguage) MovaTeal else MovaBlack
+                                color = if (language == selectedLanguage) MovaTeal else MaterialTheme.colorScheme.onBackground
                             )
                             RadioButton(
                                 selected = language == selectedLanguage,
                                 onClick = {
                                     selectedLanguage = language
                                     Log.d("SettingsScreen", "Language changed to: $language")
-                                    // TODO: Apply language change
                                 },
                                 colors = RadioButtonDefaults.colors(
                                     selectedColor = MovaTeal
@@ -244,7 +242,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ===== Save Button (optional - or settings auto-save) =====
+            // ===== Save Button  =====
             Button(
                 onClick = {
                     Log.d("SettingsScreen", "Saving settings: lang=$selectedLanguage, notif=$notificationsEnabled, bio=$biometricAuth")
@@ -286,7 +284,7 @@ fun SectionHeader(title: String) {
         text = title,
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
-        color = MovaBlue
+        color = MaterialTheme.colorScheme.onBackground
     )
 }
 
@@ -312,7 +310,7 @@ fun SettingToggleRow(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = MovaBlue
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = subtitle,

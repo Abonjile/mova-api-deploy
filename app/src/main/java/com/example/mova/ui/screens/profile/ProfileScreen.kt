@@ -21,7 +21,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
 import com.example.mova.ui.theme.MovaBlue
 import com.example.mova.ui.theme.MovaTeal
-import com.example.mova.ui.theme.MovaOffWhite
 import com.example.mova.ui.theme.MovaGray
 import com.example.mova.ui.theme.MovaLightGray
 import com.example.mova.ui.theme.MovaBlack
@@ -51,7 +50,7 @@ fun ProfileScreen(
     }
 
     Scaffold(
-        containerColor = MovaOffWhite
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         when {
             // ===== LOADING STATE =====
@@ -198,7 +197,7 @@ fun ProfileContent(
             text = user.fullName,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = MovaBlue,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
         )
