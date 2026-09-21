@@ -48,12 +48,52 @@ router.post('/', async (req, res) => {
   }
 });
 
+const { calculateWorkoutCalories } = require('../utils/calorieCalculator');
+const Exercise = require('../models/Exercise');
+
 // POST /api/workouts/log — Log a completed workout
 router.post('/log', async (req, res) => {
   try {
-    const log = new WorkoutLog(req.body);
+    const { userId, workoutId, durationMinutes, weightAtTime, userNote } = req.body;
+
+    if (!userId || !workoutId || !durationMinutes || !weightAtTime) {
+      return res.status(400).json({ message: 'userId, workoutId, durationMinutes, and weightAtTime are required' });
+    }
+
+    // Get workout's exercises for MET values
+    const junctionEntries = await WorkoutExercise.find({ workoutId });
+    const exerciseIds = junctionEntries.map(e => e.exerciseId);
+    const exercises = await Exercise.find({ exerciseId: { $in: exerciseIds } });
+
+    // Build array with MET values
+    const exercisesWithMet = junctionEntries.map(entry => {
+      const ex = exercises.find(e => e.exerciseId === entry.exerciseId);
+      return {
+        metValue: ex ? ex.metValue : 3.8,
+        durationMinutes: durationMinutes / junctionEntries.length // Divide evenly for simplicity
+      };
+    });
+
+    // Auto-calculate calories
+    const caloriesBurned = calculateWorkoutCalories(exercisesWithMet, weightAtTime);
+
+    const log = new WorkoutLog({
+      userId,
+      workoutId,
+      durationMinutes,
+      caloriesBurned,
+      weightAtTime,
+      completed: true,
+      userNote: userNote || '',
+      isSynced: true
+    });
+
     await log.save();
-    res.status(201).json({ message: 'Workout logged', log });
+    res.status(201).json({
+      message: 'Workout logged',
+      log,
+      calculatedCalories: caloriesBurned
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
