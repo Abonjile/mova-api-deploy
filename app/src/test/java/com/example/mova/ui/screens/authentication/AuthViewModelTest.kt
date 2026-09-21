@@ -1,76 +1,71 @@
 package com.example.mova.ui.screens.authentication
 
+import com.example.mova.MainDispatcherRule
 import com.example.mova.data.models.AuthResponse
 import com.example.mova.data.models.User
 import com.example.mova.data.repository.AuthRepository
 import com.example.mova.data.session.SessionManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.advanceUntilIdle
-import org.junit.Before
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertNotNull
-import io.mockk.mockk
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AuthViewModelTest {
 
-    // The curoutines executes after advanceUntilIdle() is called
-    private val dispatcher = StandardTestDispatcher()
+    // Replaces the main dispatcher with a test dispatcher so coroutines run deterministically
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
     private lateinit var authRepository: AuthRepository
     private lateinit var sessionManager: SessionManager
     private lateinit var viewModel: AuthViewModel
 
     @Before
     fun setup() {
-        // Restore Main so other test classes are unaffected
-        Dispatchers.setMain(dispatcher)
+        // Creates a strict mock for the auth repository where unstubbed calls fail
         authRepository = mockk()
+        // creates a relaxed mock for the session manager, unstubbed calls returns defaults
         sessionManager = mockk(relaxed = true)
+        // Instantiates the ViewModel under test with the mocked dependencies
         viewModel = AuthViewModel(authRepository, sessionManager)
     }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
     @Test
-    fun `register success emits success and isNewRegistration`() = runTest(dispatcher) {
+    fun `register success emits success and isNewRegistration`() = runTest {
         val response = AuthResponse(
             message = "ok",
             user = User(userId = "usr_1", fullName = "Test", email = "t@t.com")
         )
+        // Stubs the repository to return a successful registration response
         coEvery { authRepository.register(any(), any(), any()) } returns Result.success(response)
 
         viewModel.register("Test", "t@t.com", "password123")
+        // waits for all coroutines launched by register to complete
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
+        // Verifies that the success flag was set
         assertTrue(state.success)
-        // New sign-ups must be flagged so the UI can route to onboarding
+        // Verifies that the flow marks this as a new registration
         assertTrue(state.isNewRegistration)
+        // Verifies that loading has finished
         assertFalse(state.isLoading)
-        // The session must be populated with the returned user id
+        // Verifies that the user ID was persisted to the session
         coVerify { sessionManager.setUserId("usr_1") }
-        // New users start onboarding as incomplete
+        // Verifies that onboarding is marked incomplete for new registrations
         coVerify { sessionManager.setOnboardingComplete(false) }
     }
 
     @Test
-    fun `register failure emits error and keeps success false`() = runTest(dispatcher) {
+    fun `register failure emits error`() = runTest {
+        // Simulates a registration failure, for example a duplicate email
         coEvery { authRepository.register(any(), any(), any()) } returns
                 Result.failure(Exception("Email already exists"))
 
@@ -78,31 +73,34 @@ class AuthViewModelTest {
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
+        // Verifies that success was not set on failure
         assertFalse(state.success)
-        // The error message from the exception is propagated to the UI state
+        // Verifies that the error message is surfaced from the exception
         assertEquals("Email already exists", state.error)
     }
 
     @Test
-    fun `login success sets isNewRegistration to false`() = runTest(dispatcher) {
+    fun `login success sets isNewRegistration to false`() = runTest {
         val response = AuthResponse(
             message = "ok",
             user = User(userId = "usr_1", fullName = "Test", email = "t@t.com")
         )
+        // Stubs the repository to return a successful login response
         coEvery { authRepository.login(any(), any()) } returns Result.success(response)
 
         viewModel.login("t@t.com", "password123")
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
+        // Verifies that the success flag was set
         assertTrue(state.success)
-        // Existing users skip the onboarding flow
+        // Verifies that login is not treated as a new registration
         assertFalse(state.isNewRegistration)
     }
 
     @Test
-    fun `login with missing userId surfaces error`() = runTest(dispatcher) {
-        // Backend is simulated and returns success, but without a user payload
+    fun `login with missing userId surfaces error`() = runTest {
+        // Simulates a login response that is missing the user object
         coEvery { authRepository.login(any(), any()) } returns
                 Result.success(AuthResponse(message = "ok", user = null))
 
@@ -110,16 +108,17 @@ class AuthViewModelTest {
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
-        // If user id is missing it will be treated as a failure
+        // Verifies that success was not set when userId is missing
         assertFalse(state.success)
+        // Verifies that an error was surfaced to the UI
         assertNotNull(state.error)
     }
 
     @Test
-    fun `resetState clears all flags`() = runTest(dispatcher) {
+    fun `resetState clears all flags`() = runTest {
         viewModel.resetState()
         val state = viewModel.uiState.value
-        // resetState should return the UI state to a clean baseline
+        // Verifies that all state flags and error are cleared back to defaults
         assertFalse(state.success)
         assertNull(state.error)
         assertFalse(state.isLoading)

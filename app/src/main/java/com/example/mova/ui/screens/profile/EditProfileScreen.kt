@@ -44,9 +44,9 @@ fun EditProfileScreen(
     // Initialize form fields from the CURRENT user
     var fullName by remember(currentUser) { mutableStateOf(currentUser?.fullName ?: "") }
     var location by remember(currentUser) { mutableStateOf(currentUser?.location ?: "Johannesburg, SA") }
-    var height by remember(currentUser) { mutableStateOf(currentUser?.height.toString() ?: "") }
-    var weight by remember(currentUser) { mutableStateOf(currentUser?.weight.toString() ?: "") }
-    var age by remember(currentUser) { mutableStateOf(currentUser?.age.toString() ?: "") }
+    var height by remember(currentUser) { mutableStateOf(currentUser?.height?.toString() ?: "") }
+    var weight by remember(currentUser) { mutableStateOf(currentUser?.weight?.toString() ?: "") }
+    var age by remember(currentUser) { mutableStateOf(currentUser?.age?.toString() ?: "") }
     var selectedGender by remember(currentUser) { mutableStateOf(currentUser?.gender ?: "Prefer not to say") }
     var selectedFitnessLevel by remember(currentUser) { mutableStateOf(currentUser?.fitnessLevel ?: "Intermediate") }
     var fitnessGoal by remember(currentUser) { mutableStateOf(currentUser?.fitnessGoal ?: "") }
