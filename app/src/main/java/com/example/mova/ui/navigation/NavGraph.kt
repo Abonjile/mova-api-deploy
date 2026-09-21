@@ -7,7 +7,13 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.mova.ui.screens.SplashGate
+import com.example.mova.ui.screens.onboarding.OnboardingScreen
+import com.example.mova.ui.screens.authentication.RegisterScreen
+import com.example.mova.ui.screens.authentication.LoginScreen
 import com.example.mova.ui.screens.profile.ProfileScreen
+import com.example.mova.ui.screens.profile.EditProfileScreen
+import com.example.mova.ui.screens.profile.SettingsScreen
 import com.example.mova.ui.screens.workout.WorkoutScreen
 import com.example.mova.ui.screens.challenges.ChallengesScreen
 import com.example.mova.ui.screens.rewards.RewardsScreen
@@ -25,13 +31,66 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
 fun MovaNavGraph(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    startDestination: String = Screen.Workout.route
+    startDestination: String = "splash"
 ) {
     NavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier
     ) {
+        // ===== Splash / Session gate =====
+        composable("splash") {
+            SplashGate(
+                onRouteDecided = { route ->
+                    navController.navigate(route) {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // ===== Auth =====
+        composable("signup") {
+            RegisterScreen(
+                onNavigateToLogin = {
+                    navController.navigate("login") {
+                        popUpTo("signup") { inclusive = true }
+                    }
+                },
+                onSignUpSuccess = {
+                    navController.navigate("onboarding") {
+                        popUpTo("signup") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("login") {
+            LoginScreen(
+                onNavigateToSignUp = {
+                    navController.navigate("signup") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
+                onLoginSuccess = {
+                    navController.navigate(Screen.Workout.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("onboarding") {
+            OnboardingScreen(
+                onFinish = {
+                    navController.navigate(Screen.Workout.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // ===== Main app =====
         composable(Screen.Workout.route) {
             WorkoutScreen()
         }
@@ -42,7 +101,25 @@ fun MovaNavGraph(
             RewardsScreen()
         }
         composable(Screen.Profile.route) {
-            ProfileScreen()
+            ProfileScreen(
+                onNavigateToSettings = { navController.navigate("settings") },
+                onNavigateToEdit = { navController.navigate(route = "edit_profile") },
+                onLoggedOut = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }   // clear entire back stack
+                    }
+                }
+            )
+        }
+        composable("edit_profile") {
+            EditProfileScreen(
+                onBackPressed = { navController.popBackStack() }
+            )
+        }
+        composable("settings") {
+            SettingsScreen(
+                onBackPressed = { navController.popBackStack() }
+            )
         }
         composable(Screen.Analytics.route) {
             AnalyticsScreen()
