@@ -102,7 +102,7 @@ fun WorkoutDetailScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(240.dp)
+                        .height(200.dp)
                         .padding(horizontal = 16.dp)
                 ) {
                     Card(
@@ -113,8 +113,9 @@ fun WorkoutDetailScreen(
                         Image(
                             painter = painterResource(id = getWorkoutImage(w.name)),
                             contentDescription = w.name,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize(),
+                            alignment = Alignment.Center
                         )
                     }
                 }

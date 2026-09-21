@@ -114,7 +114,7 @@ fun WorkoutInProgressScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(300.dp),
+                            .height(220.dp),
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
