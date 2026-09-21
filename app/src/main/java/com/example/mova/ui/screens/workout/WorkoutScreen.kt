@@ -1,5 +1,6 @@
 package com.example.mova.ui.screens.workout
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -17,12 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-
-private val MovaBlue = Color(0xFF1A1A2E)
+import com.example.mova.R
 
 @Composable
 fun WorkoutScreen(
@@ -38,40 +39,40 @@ fun WorkoutScreen(
         SearchBar()
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Jump Back In
+        // Jump Back In — large cards
         SectionTitle("Jump Back In")
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(jumpBackInItems) { item ->
-                LargeWorkoutCard(title = item)
+                LargeWorkoutCard(imageRes = item.imageRes)
             }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Challenges
+        // Challenges — small cards
         SectionTitle("Challenges")
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(challengeItems) { item ->
-                SmallCard(title = item)
+                SmallCard(imageRes = item.imageRes)
             }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Exercises
+        // Exercises — small cards
         SectionTitle("Exercises")
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(exerciseItems) { item ->
-                SmallCard(title = item)
+                SmallCard(imageRes = item.imageRes)
             }
         }
 
@@ -91,36 +92,31 @@ private fun WorkoutHeader() {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // "Workout" on the LEFT — dark blue, large
         Text(
             text = "Workout",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = MovaBlue
+            color =  Color(0xFF00008B)
         )
 
-        // "● ● MOVA"on the RIGHT
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Black dot
             Box(
                 modifier = Modifier
-                    .size(12.dp)
-                    .background(Color.Black, shape = CircleShape)
+                    .size(10.dp)
+                    .background( Color(0xFF00008B), shape = CircleShape)
             )
             Spacer(modifier = Modifier.width(4.dp))
-            // Red dot
             Box(
                 modifier = Modifier
-                    .size(12.dp)
+                    .size(10.dp)
                     .background(Color(0xFFE53935), shape = CircleShape)
             )
             Spacer(modifier = Modifier.width(6.dp))
-            // MOVA text
             Text(
                 text = "MOVA",
-                fontSize = 14.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = MovaBlue
+                color = Color.Black
             )
         }
     }
@@ -180,30 +176,20 @@ private fun SectionTitle(title: String) {
 // LARGE CARD (Jump Back In)
 // ─────────────────────────────────────────────
 @Composable
-private fun LargeWorkoutCard(title: String) {
+private fun LargeWorkoutCard(imageRes: Int) {
     Card(
         modifier = Modifier
-            .width(220.dp)
-            .height(140.dp),
+            .width(240.dp)
+            .height(160.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MovaBlue
-        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            contentAlignment = Alignment.BottomStart
-        ) {
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
-        }
+        Image(
+            painter = painterResource(id = imageRes),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 
@@ -211,56 +197,49 @@ private fun LargeWorkoutCard(title: String) {
 // SMALL CARD (Challenges & Exercises)
 // ─────────────────────────────────────────────
 @Composable
-private fun SmallCard(title: String) {
+private fun SmallCard(imageRes: Int) {
     Card(
         modifier = Modifier
-            .width(140.dp)
-            .height(100.dp),
+            .width(220.dp)
+            .height(130.dp),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFE8EAF6)
-        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            contentAlignment = Alignment.BottomStart
-        ) {
-            Text(
-                text = title,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                color = MovaBlue
-            )
-        }
+        Image(
+            painter = painterResource(id = imageRes),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 
 // ─────────────────────────────────────────────
-// SAMPLE DATA (replace with API data later)
+// DATA — 16 images distributed across sections
 // ─────────────────────────────────────────────
+data class WorkoutItem(val imageRes: Int)
+
 private val jumpBackInItems = listOf(
-    "Morning Routine",
-    "Full Body Blast",
-    "Quick Cardio",
-    "Core Crusher"
+    WorkoutItem(R.drawable.fullbody_workout),
+    WorkoutItem(R.drawable.hiit_workout),
+    WorkoutItem(R.drawable.abs_workout),
+    WorkoutItem(R.drawable.cardio_workout),
+    WorkoutItem(R.drawable.chest_workout)
 )
 
 private val challengeItems = listOf(
-    "7-Day Kickstart",
-    "10-Day Burn",
-    "30-Day Strong",
-    "Beginner Boost",
-    "Advanced Push"
+    WorkoutItem(R.drawable.corecrush_workout),
+    WorkoutItem(R.drawable.legday_workout),
+    WorkoutItem(R.drawable.glutepower_workout),
+    WorkoutItem(R.drawable.backbuilder_workout),
+    WorkoutItem(R.drawable.yoga_workout)
 )
 
 private val exerciseItems = listOf(
-    "Push-ups",
-    "Squats",
-    "Plank",
-    "Lunges",
-    "Burpees",
-    "Jumping Jacks"
+    WorkoutItem(R.drawable.armstrength_workout),
+    WorkoutItem(R.drawable.back_workout),
+    WorkoutItem(R.drawable.glute_workout),
+    WorkoutItem(R.drawable.lowimpact_workout),
+    WorkoutItem(R.drawable.mobility_workout),
+    WorkoutItem(R.drawable.anotherhiit_workout)
 )
