@@ -29,6 +29,21 @@ const UserSchema = new mongoose.Schema({
 
   // Settings fields
   language: { type: String, enum: ['English', 'isiZulu', 'Sesotho'], default: 'English' },
+  // SSO is optional for now so prototype testing works
+  ssoProvider: { type: String, enum: ['GOOGLE', 'FACEBOOK', 'APPLE'], required: true },
+  ssoProviderId: { type: String, required: true, unique: true },
+
+  // Profile fields
+  age: {type: Number},
+  gender: { type: String, enum: ['Male', 'Female', 'Other'] },
+  height: {type: Number},
+  weight: {weight:Number},
+  fitnessLevel: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced', 'Athlete'], default: 'Beginner' },
+  fitnessGoal: {type: String},
+  location: { type: String },
+
+  // Settings fields
+  language: { type: String, enum: ['English', 'IsiZulu', 'Sesotho'], default: 'English' },
   notificationsEnabled: { type: Boolean, default: true },
   biometricEnabled: { type: Boolean, default: false },
   speechEnabled: { type: Boolean, default: false },

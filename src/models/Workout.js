@@ -35,6 +35,7 @@ const WorkoutSchema = new mongoose.Schema({
     reps: { type: Number, default: 12 },
     restSeconds: { type: Number, default: 30 }
   }],
+ 
   isCustom: {
     type: Boolean,
     default: false
