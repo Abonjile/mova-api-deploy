@@ -16,8 +16,8 @@ import com.example.mova.ui.screens.profile.EditProfileScreen
 import com.example.mova.ui.screens.profile.SettingsScreen
 import com.example.mova.ui.screens.workout.WorkoutScreen
 import com.example.mova.ui.screens.challenges.ChallengesScreen
-import com.example.mova.ui.screens.challenges.RewardsScreen
-import com.example.mova.ui.screens.challenges.AnalyticsScreen
+import com.example.mova.ui.screens.rewards.RewardsScreen
+import com.example.mova.ui.screens.analytics.AnalyticsScreen
 
 sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val label: String) {
     object Challenges : Screen("challenges", Icons.Default.RunCircle, "Challenges")
