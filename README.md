@@ -59,6 +59,32 @@ and app settings.
 - **DataStore** for session persistence
 - **StateFlow** for reactive UI state
 
+## Member 3 — Njabulo Mhlangu: Progress & Gamification
+
+### Overview
+Responsible for the Progress & Gamification module — the fitness tracking
+dashboard experience that lets users join challenges, build streaks, earn
+badges, and view personal analytics. Bridges Jetpack Compose UI with
+Node.js / Express backend services.
+
+### Features Delivered
+
+### 1. Challenges
+- Browse active fitness challenges (7, 10, and 30-day durations).
+- Join a challenge with a single tap; user enrollment persisted to backend.
+- Track progress: current day, completion percentage, streak count.
+- Custom notes attached to daily challenge milestones.
+
+### 2. Rewards
+- Unlock badges on milestone completion.
+- Track streaks and achievement history.
+- Badge catalogue viewable from the Rewards tab.
+
+### 3. Analytics
+-  dashboard showing user fitness consistency.
+- Performance graphs and workout history insights.
+- Milestone tracking visualised for the user.
+
 ### Unit Tests
 | Test class | Coverage |
 |---|---|
@@ -68,6 +94,12 @@ and app settings.
 Run with:
 ```bash
 ./gradlew testDebugUnitTest
+
 android.enableJetifier=true
 
 Backend Integration: Ensure the environment variables (MongoDB connection string, port configurations) are properly configured in the .env file before launching the Node.js server
+```
+
+
+<!-- References -->
+<!-- Team-wide references (will be added later) -->
