@@ -29,7 +29,6 @@ const WorkoutSchema = new mongoose.Schema({
     type: Number,
     default: 20
   },
- 
   isCustom: {
     type: Boolean,
     default: false
@@ -41,7 +40,10 @@ const WorkoutSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  iconName: { 
+    type: String, 
+    default: 'fitness' }, 
 });
 
 module.exports = mongoose.model('Workout', WorkoutSchema);

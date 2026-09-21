@@ -19,13 +19,13 @@ router.get('/', async (req, res) => {
 // POST /api/workouts — Create workout + junction entries
 router.post('/', async (req, res) => {
   try {
-    const { userId, name, description, difficulty, durationMinutes, exercises } = req.body;
+    const { userId, name, description, difficulty, durationMinutes, exercises, iconName } = req.body;
     if (!userId || !name) {
       return res.status(400).json({ message: 'userId and name are required' });
     }
 
     const workout = new Workout({
-      userId, name, description, difficulty, durationMinutes, isCustom: true
+      userId, name, description, difficulty, durationMinutes, isCustom: true, iconName: iconName || 'fitness'
     });
     await workout.save();
 
