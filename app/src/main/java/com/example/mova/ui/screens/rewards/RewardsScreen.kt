@@ -20,7 +20,7 @@ fun RewardsScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         // Top Bar Title & Brand Logo
@@ -33,7 +33,7 @@ fun RewardsScreen() {
                 text = "Rewards",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A237E) //Dark Blue colour
+                color = MaterialTheme.colorScheme.background
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(8.dp).background(Color.Black, CircleShape))
@@ -86,14 +86,14 @@ fun RewardsScreen() {
             text = "Active Challenge Rewards",
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = Color(0xFF1A237E)
+            color = MaterialTheme.colorScheme.background
         )
         Spacer(modifier = Modifier.height(10.dp))
 
         // Claimable Reward Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Row(
@@ -117,12 +117,13 @@ fun RewardsScreen() {
                         Text(
                             text = "7-Day Jumpstart Complete",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Claim +100 bonus FitPoints",
                             fontSize = 11.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -164,10 +165,10 @@ fun RewardsScreen() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "🔒", fontSize = 20.sp, color = Color.Gray)
+                Text(text = "🔒", fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = "Champion", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.Gray)
-                Text(text = "Win a challenge", fontSize = 9.sp, color = Color.Gray)
+                Text(text = "Win a challenge", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

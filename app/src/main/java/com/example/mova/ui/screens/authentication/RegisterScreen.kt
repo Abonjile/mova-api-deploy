@@ -165,9 +165,9 @@ fun RegisterScreen(
                     .height(50.dp)
             ) {
                 if (uiState.isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(22.dp))
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.surface, modifier = Modifier.size(22.dp))
                 } else {
-                    Text(text = "Continue", color = Color.White, fontSize = 16.sp)
+                    Text(text = "Continue", color = MaterialTheme.colorScheme.surface, fontSize = 16.sp)
                 }
             }
 

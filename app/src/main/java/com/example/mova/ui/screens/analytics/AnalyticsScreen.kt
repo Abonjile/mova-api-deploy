@@ -75,7 +75,7 @@ fun AnalyticsScreen() {
         Row(
             modifier = Modifier
                 .fillMaxWidth() // Span full width
-                .background(Color(0xFFE9ECEF), RoundedCornerShape(10.dp)) // Light grey rounded container background
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp)) // Light grey rounded container background
                 .padding(4.dp), // Inner padding around tab items
             horizontalArrangement = Arrangement.SpaceBetween // Distribute space evenly
         ) {
@@ -88,7 +88,7 @@ fun AnalyticsScreen() {
                     modifier = Modifier
                         .weight(1f) // Distribute available width equally between tabs
                         .clip(RoundedCornerShape(8.dp)) // Rounded corners for tab item
-                        .background(if (isSelected) Color.White else Color.Transparent) // White background if selected, transparent otherwise
+                        .background(if (isSelected) MaterialTheme.colorScheme.surface else Color.Transparent) // White background if selected, transparent otherwise
                         .clickable { selectedPeriod = period } // Update selected period state on click
                         .padding(vertical = 8.dp), // Vertical padding inside tab
                     contentAlignment = Alignment.Center // Center text inside tab box
@@ -114,7 +114,7 @@ fun AnalyticsScreen() {
         // Card container for Goal Setting metrics, dynamically updated based on active period selection
         Card(
             modifier = Modifier.fillMaxWidth(), // Span full width
-            colors = CardDefaults.cardColors(containerColor = Color.White), // White background color
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // White background color
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp) // Subtle shadow elevation
         ) {
             // Inner column layout for goal details
@@ -190,7 +190,7 @@ fun AnalyticsScreen() {
         // Card container for Calories Trend Line Chart
         Card(
             modifier = Modifier.fillMaxWidth(), // Span full width
-            colors = CardDefaults.cardColors(containerColor = Color.White), // White background color
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // White background color
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp) // Subtle elevation shadow
         ) {
             // Inner column container for chart elements
@@ -239,7 +239,7 @@ fun AnalyticsScreen() {
         // Card container for Training Volume Bar Chart
         Card(
             modifier = Modifier.fillMaxWidth(), // Span full width
-            colors = CardDefaults.cardColors(containerColor = Color.White), // White background color
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // White background color
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp) // Subtle shadow elevation
         ) {
             // Inner column container for bar chart elements

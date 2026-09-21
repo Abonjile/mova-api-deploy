@@ -26,7 +26,7 @@ fun ChallengesScreen() {
     Column(
         modifier = Modifier // Modifiers for layout styling
             .fillMaxSize() // Fill the entire available screen space
-            .background(Color(0xFFF8F9FA)) // Light background color for the screen
+            .background(MaterialTheme.colorScheme.background) // Light background color for the screen
             .verticalScroll(rememberScrollState()) // Enable scrolling for overflow content
             .padding(16.dp) // Apply padding around all screen contents
     ) {
@@ -41,12 +41,12 @@ fun ChallengesScreen() {
                 text = "Challenges", // String value for the header
                 fontSize = 24.sp, // Large font size for prominent heading
                 fontWeight = FontWeight.Bold, // Bold text weight
-                color = Color(0xFF1A237E) // Dark primary text color
+                color = MaterialTheme.colorScheme.onBackground
             )
             // Row container for the MOVA brand indicator dots and logo text
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Black circle dot for branding design
-                Box(modifier = Modifier.size(8.dp).background(Color.Black, CircleShape))
+                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.background, CircleShape))
                 // Horizontal spacing between the dots
                 Spacer(modifier = Modifier.width(4.dp))
                 // Red circle dot for branding design
@@ -74,7 +74,7 @@ fun ChallengesScreen() {
         // Card container displaying target muscle group summary (e.g., Legs)
         Card(
             modifier = Modifier.width(140.dp), // Fixed width for a compact card look
-            colors = CardDefaults.cardColors(containerColor = Color.White), // White background for the card
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // White background for the card
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp) // Subtle shadow elevation
         ) {
             // Inner column container for card contents
@@ -96,7 +96,7 @@ fun ChallengesScreen() {
                 // Text showing the muscle group name
                 Text(text = "Legs", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1A1C1E))
                 // Text showing workout count for the muscle group
-                Text(text = "10 Workouts", fontSize = 11.sp, color = Color.Gray)
+                Text(text = "10 Workouts", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -107,7 +107,7 @@ fun ChallengesScreen() {
             text = "Active Programs", // Header text
             fontWeight = FontWeight.Bold, // Bold font weight
             fontSize = 16.sp, // Medium-large font size
-            color = Color(0xFF1A237E) // Dark text color
+            color = MaterialTheme.colorScheme.onBackground
         )
         // Vertical spacing below section header
         Spacer(modifier = Modifier.height(12.dp))
@@ -161,7 +161,7 @@ fun ActiveProgramCard(
     // Card container for the active program item
     Card(
         modifier = Modifier.fillMaxWidth(), // Fill maximum available width
-        colors = CardDefaults.cardColors(containerColor = Color.White), // White background color
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // White background color
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp) // Subtle elevation shadow
     ) {
         // Inner column layout for card content elements
@@ -194,7 +194,7 @@ fun ActiveProgramCard(
             // Vertical spacing below title row
             Spacer(modifier = Modifier.height(2.dp))
             // Text showing program subtitle/description
-            Text(text = subtitle, fontSize = 11.sp, color = Color.Gray)
+            Text(text = subtitle, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             // Vertical spacing before progress bar
             Spacer(modifier = Modifier.height(12.dp))
             // Linear progress indicator representing challenge completion ratio
@@ -215,7 +215,7 @@ fun ActiveProgramCard(
                 horizontalArrangement = Arrangement.SpaceBetween // Space items to opposite ends
             ) {
                 // Label text for overall progress
-                Text(text = "Overall progress", fontSize = 11.sp, color = Color.Gray)
+                Text(text = "Overall progress", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 // Text showing exact completion percentage
                 Text(
                     text = percentageString,
