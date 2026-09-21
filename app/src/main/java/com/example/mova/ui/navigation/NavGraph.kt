@@ -5,13 +5,17 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.mova.ui.screens.profile.ProfileScreen
-import com.example.mova.ui.screens.workout.WorkoutScreen
+import androidx.navigation.navArgument
+import com.example.mova.ui.screens.challenges.AnalyticsScreen
 import com.example.mova.ui.screens.challenges.ChallengesScreen
 import com.example.mova.ui.screens.challenges.RewardsScreen
-import com.example.mova.ui.screens.challenges.AnalyticsScreen
+import com.example.mova.ui.screens.profile.ProfileScreen
+import com.example.mova.ui.screens.workout.WorkoutDetailScreen
+import com.example.mova.ui.screens.workout.WorkoutInProgressScreen
+import com.example.mova.ui.screens.workout.WorkoutScreen
 
 sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val label: String) {
     object Challenges : Screen("challenges", Icons.Default.RunCircle, "Challenges")
@@ -19,6 +23,14 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
     object Workout : Screen("workout", Icons.Default.FitnessCenter, "Workout")
     object Profile : Screen("profile", Icons.Default.Person, "Profile")
     object Analytics : Screen("analytics", Icons.Default.BarChart, "Analytics")
+
+    // Detail routes (not in bottom nav)
+    object WorkoutDetail : Screen("workout_detail/{workoutId}", Icons.Default.Info, "Detail") {
+        fun createRoute(workoutId: String) = "workout_detail/$workoutId"
+    }
+    object WorkoutInProgress : Screen("workout_in_progress/{workoutId}", Icons.Default.PlayArrow, "In Progress") {
+        fun createRoute(workoutId: String) = "workout_in_progress/$workoutId"
+    }
 }
 
 @Composable
@@ -33,7 +45,11 @@ fun MovaNavGraph(
         modifier = modifier
     ) {
         composable(Screen.Workout.route) {
-            WorkoutScreen()
+            WorkoutScreen(
+                onWorkoutClick = { workoutId ->
+                    navController.navigate(Screen.WorkoutDetail.createRoute(workoutId))
+                }
+            )
         }
         composable(Screen.Challenges.route) {
             ChallengesScreen()
@@ -46,6 +62,36 @@ fun MovaNavGraph(
         }
         composable(Screen.Analytics.route) {
             AnalyticsScreen()
+        }
+
+        // Workout Detail route
+        composable(
+            route = Screen.WorkoutDetail.route,
+            arguments = listOf(navArgument("workoutId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val workoutId = backStackEntry.arguments?.getString("workoutId") ?: ""
+            WorkoutDetailScreen(
+                workoutId = workoutId,
+                onBack = { navController.popBackStack() },
+                onStartWorkout = { id ->
+                    navController.navigate(Screen.WorkoutInProgress.createRoute(id))
+                }
+            )
+        }
+
+        // Workout In Progress route
+        composable(
+            route = Screen.WorkoutInProgress.route,
+            arguments = listOf(navArgument("workoutId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val workoutId = backStackEntry.arguments?.getString("workoutId") ?: ""
+            WorkoutInProgressScreen(
+                workoutId = workoutId,
+                onBack = { navController.popBackStack() },
+                onFinish = {
+                    navController.popBackStack(Screen.Workout.route, inclusive = false)
+                }
+            )
         }
     }
 }
