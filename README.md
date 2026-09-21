@@ -1,52 +1,73 @@
-MOVA App: Progress & Gamification Feature (feature/progress-gamification)
+# MOVA — Fitness Tracking Application
 
-This branch contains the core implementation of the Progress & Gamification module for the Mova application. It bridges the Android Jetpack Compose frontend with the Node.js/Express backend to deliver an engaging fitness tracking experience complete with challenges, streak counters, milestone rewards, and personal analytics.
+<!-- Team intro (will be added later) -->
+<!-- Architecture diagram (will be added later) -->
+<!-- Build instructions (will be added later) -->
 
-# Architecture & Component Structure
-1. Android Frontend (Jetpack Compose)
-Located under app/src/main/java/com/example/mova/:
+---
 
-UI Screens (ui/screens/):
+## Table of Contents
 
-analytics/AnalyticsScreen.kt & AnalyticsViewModel.kt - Displays user progress metrics, workout history insights, and performance graphs.
+- [Member 1 — Alwande Gwala: Authentication, Profile & Settings](#member-1--authentication-profile--settings)
+- [Member 3 — Njabulo Mhlangu: Progress & Gamification](#member-3--progress--gamification)
 
-challenges/ChallengesScreen.kt - Lists active fitness challenges, allowing users to browse, select, and enroll.
+---
 
-rewards/RewardsScreen.kt - Showcases badges, unlocked milestones, and achievement tracking.
+## Member 1 — Authentication, Profile & Settings
 
-Data Layer (data/):
+### Overview
+Responsible for user authentication, session persistence, profile management,
+and app settings.
 
-ChallengeApiService.kt - Retrofit API service interface connecting the Android client to backend challenge and progress endpoints.
+### Features Delivered
 
-2. Node.js Backend (src/)
-Located under the root backend source directory:
+#### 1. Authentication
+- **Register** — new users sign up with email + password. Passwords hashed
+  with bcrypt on the backend.
+- **Login** — existing users sign in; user ID persisted across restarts.
+- **SSO (partial)** — Google/Apple sign-in UI present; full SDK integration
+  planned for the final POE.
 
-Models (src/models/):
+#### 2. Session Management
+- Persistent session via **DataStore Preferences**.
+- App restarts skip authentication if a session is active.
+- Logout clears all session keys and returns to login.
 
-Challenge.js - MongoDB schema defining challenge parameters (title, description, duration days, difficulty levels, and active status).
+#### 3. Post-Registration Onboarding
+- New users land on an onboarding screen to capture height, weight, age,
+  gender, fitness level, and fitness goals.
+- Data is PUT to `/api/users/:userId` and used to personalise workouts.
 
-Controllers (src/controllers/):
+#### 4. Profile Management
+- View profile: name, avatar (initials), height, weight, age, fitness level.
+- Edit Profile: all fields editable with validation.
+- Fitness Objectives: user can add/remove multiple short-term objectives
+  (stored as an array on the backend).
 
-challengeController.js - Handles business logic for fetching active challenges (getAllChallenges), enrolling users (joinChallenge), and updating progress metrics, streaks, and custom notes (updateChallengeProgress).
+#### 5. Settings
+- Dark mode toggle (persisted, applied app-wide)
+- Larger text toggle
+- High contrast toggle
+- Biometric authentication toggle (persisted)
+- Multi-language selection: English, isiZulu, Sesotho
+- All persisted via `PUT /api/users/:userId/settings`
 
-Routes (src/routes/):
+### Technical Highlights
+- **MVVM architecture** with Hilt DI
+- **Offline-first** — RoomDB caches user data; repository prefers local first
+- **Retrofit + Gson** for REST API
+- **DataStore** for session persistence
+- **StateFlow** for reactive UI state
 
-challengeRoutes.js - Exposes RESTful endpoints (GET /api/challenges, POST /api/challenges/join, PUT /api/challenges/:userChallengeId).
+### Unit Tests
+| Test class | Coverage |
+|---|---|
+| `AuthViewModelTest` | register success/failure, login success/missing userId, reset |
+| `UserViewModelTest` | load from session, no-session error, add/remove objective, logout |
 
-# Key Features
-Interactive Challenges: Users can join challenges of varying durations (7, 10, or 30 days) and difficulty levels.
-
-Streak & Milestone Tracking: Real-time updates record consecutive participation days and award badges upon completion.
-
-Custom Reflections: Support for attaching custom user notes to daily challenge milestones.
-
-Analytics Dashboard: Visual representation of user fitness consistency and milestone achievements.
-
-# Configuration & Setup Notes
-Android Dependencies: Requires AndroidX configuration flags in gradle.properties:
-
-Properties- 
-android.useAndroidX=true
+Run with:
+```bash
+./gradlew testDebugUnitTest
 android.enableJetifier=true
 
-Backend Integration: Ensure the environment variables (MongoDB connection string, port configurations) are properly configured in your .env file before launching the Node.js server
+Backend Integration: Ensure the environment variables (MongoDB connection string, port configurations) are properly configured in the .env file before launching the Node.js server
