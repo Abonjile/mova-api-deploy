@@ -34,7 +34,7 @@ class UserViewModelTest {
     }
 
     @Test
-    fun `init loads user from session`() = runTest {
+    fun `init loads user from session`() = runTest(mainDispatcherRule.testScheduler) {
         val user = User(userId = "usr_1", fullName = "Rita", email = "r@mova.com")
         // stubs the session to return a logged-in user ID
         coEvery { sessionManager.getUserId() } returns "usr_1"
@@ -52,7 +52,7 @@ class UserViewModelTest {
     }
 
     @Test
-    fun `loadUser with no session surfaces error`() = runTest {
+    fun `loadUser with no session surfaces error`() = runTest(mainDispatcherRule.testScheduler) {
         // simulates no active session
         coEvery { sessionManager.getUserId() } returns null
 
@@ -64,7 +64,7 @@ class UserViewModelTest {
     }
 
     @Test
-    fun `addObjective appends and calls update`() = runTest {
+    fun `addObjective appends and calls update`() = runTest(mainDispatcherRule.testScheduler) {
         val user = User(userId = "usr_1", fullName = "Rita", objectives = emptyList())
         coEvery { sessionManager.getUserId() } returns "usr_1"
         coEvery { userRepository.getUser("usr_1") } returns user
@@ -84,7 +84,7 @@ class UserViewModelTest {
     }
 
     @Test
-    fun `addObjective ignores blank strings`() = runTest {
+    fun `addObjective ignores blank strings`() = runTest(mainDispatcherRule.testScheduler) {
         val user = User(userId = "usr_1", objectives = emptyList())
         coEvery { sessionManager.getUserId() } returns "usr_1"
         coEvery { userRepository.getUser("usr_1") } returns user
@@ -101,7 +101,7 @@ class UserViewModelTest {
     }
 
     @Test
-    fun `removeObjective removes existing`() = runTest {
+    fun `removeObjective removes existing`() = runTest(mainDispatcherRule.testScheduler) {
         val user = User(userId = "usr_1", objectives = listOf("A", "B"))
         coEvery { sessionManager.getUserId() } returns "usr_1"
         coEvery { userRepository.getUser("usr_1") } returns user
@@ -121,7 +121,7 @@ class UserViewModelTest {
     }
 
     @Test
-    fun `logout clears session and invokes callback`() = runTest {
+    fun `logout clears session and invokes callback`() = runTest(mainDispatcherRule.testScheduler) {
         coEvery { sessionManager.getUserId() } returns "usr_1"
         // Returns null user to keep the init path simple for this test
         coEvery { userRepository.getUser(any()) } returns null

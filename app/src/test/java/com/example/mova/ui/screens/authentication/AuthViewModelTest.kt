@@ -38,7 +38,7 @@ class AuthViewModelTest {
     }
 
     @Test
-    fun `register success emits success and isNewRegistration`() = runTest {
+    fun `register success emits success and isNewRegistration`() = runTest(mainDispatcherRule.testScheduler) {
         val response = AuthResponse(
             message = "ok",
             user = User(userId = "usr_1", fullName = "Test", email = "t@t.com")
@@ -64,7 +64,7 @@ class AuthViewModelTest {
     }
 
     @Test
-    fun `register failure emits error`() = runTest {
+    fun `register failure emits error`() = runTest(mainDispatcherRule.testScheduler) {
         // Simulates a registration failure, for example a duplicate email
         coEvery { authRepository.register(any(), any(), any()) } returns
                 Result.failure(Exception("Email already exists"))
@@ -80,7 +80,7 @@ class AuthViewModelTest {
     }
 
     @Test
-    fun `login success sets isNewRegistration to false`() = runTest {
+    fun `login success sets isNewRegistration to false`() = runTest(mainDispatcherRule.testScheduler) {
         val response = AuthResponse(
             message = "ok",
             user = User(userId = "usr_1", fullName = "Test", email = "t@t.com")
@@ -99,7 +99,7 @@ class AuthViewModelTest {
     }
 
     @Test
-    fun `login with missing userId surfaces error`() = runTest {
+    fun `login with missing userId surfaces error`() = runTest(mainDispatcherRule.testScheduler) {
         // Simulates a login response that is missing the user object
         coEvery { authRepository.login(any(), any()) } returns
                 Result.success(AuthResponse(message = "ok", user = null))
@@ -115,7 +115,7 @@ class AuthViewModelTest {
     }
 
     @Test
-    fun `resetState clears all flags`() = runTest {
+    fun `resetState clears all flags`() = runTest(mainDispatcherRule.testScheduler) {
         viewModel.resetState()
         val state = viewModel.uiState.value
         // Verifies that all state flags and error are cleared back to defaults

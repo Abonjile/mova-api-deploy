@@ -35,11 +35,11 @@ val AccentYellow = Color(0xFFF59E0B)
 
 // BRAND ALIASES
 // Screens can use either the semantic name (Primary) or the
-// brand name (MovaBlue). These point to the same values.
+// brand name (MOVA Blue). These point to the same values.
 
 val MovaBlue = Primary            // 0xFF1E3A8A
 val MovaTeal = Secondary          // 0xFF2DD4BF
-val MovaOffWhite = Background     // 0xFFF8FAFC
+val MovaOffWhite = Background     // 0xFFF8FAF
 val MovaGray = TextSecondary      // 0xFF64748B
 val MovaLightGray = SurfaceVariant // 0xFFF1F5F9
 val MovaBlack = TextPrimary       // 0xFF0F172A

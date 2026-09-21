@@ -36,19 +36,12 @@ class UserViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    // Dark mode state backed by SessionManager
-    private val _darkMode = MutableStateFlow(false)
-    val darkMode: StateFlow<Boolean> = _darkMode.asStateFlow()
+    // Dark mode state exposed directly from SessionManager
+    val darkMode: StateFlow<Boolean> get() = sessionManager.darkMode
 
     init {
         Log.d(TAG, "UserViewModel initialized")
         loadUser()
-        // Observes dark mode from session
-        viewModelScope.launch {
-            sessionManager.darkMode.collect { enabled ->
-                _darkMode.value = enabled
-            }
-        }
     }
 
     /**
