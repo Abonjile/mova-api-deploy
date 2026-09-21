@@ -13,7 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,12 +23,34 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mova.R
+import com.example.mova.data.models.Workout
+import com.example.mova.data.repository.WorkoutRepository
 
 @Composable
 fun WorkoutScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    repository: WorkoutRepository = WorkoutRepository()
 ) {
+    var systemWorkouts by remember { mutableStateOf<List<Workout>>(emptyList()) }
+    var userWorkouts by remember { mutableStateOf<List<Workout>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Fetch workouts on first composition
+    LaunchedEffect(Unit) {
+        try {
+            isLoading = true
+            systemWorkouts = repository.getSystemWorkouts()
+            // TODO: Replace with real logged-in user ID later
+            userWorkouts = repository.getUserWorkouts("test_user_123")
+            errorMessage = null
+        } catch (e: Exception) {
+            errorMessage = "Could not load workouts: ${e.message}"
+        } finally {
+            isLoading = false
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -39,40 +61,79 @@ fun WorkoutScreen(
         SearchBar()
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Jump Back In — large cards
-        SectionTitle("Jump Back In")
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(jumpBackInItems) { item ->
-                LargeWorkoutCard(imageRes = item.imageRes)
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Challenges — small cards
-        SectionTitle("Challenges")
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(challengeItems) { item ->
-                SmallCard(imageRes = item.imageRes)
+            errorMessage != null -> {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(200.dp).padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = Color.Red,
+                        fontSize = 14.sp
+                    )
+                }
             }
-        }
+            else -> {
+                // Jump Back In — user's recent (for now, just first few)
+                val recent = userWorkouts.ifEmpty { systemWorkouts }.take(5)
+                if (recent.isNotEmpty()) {
+                    SectionTitle("Jump Back In")
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(recent) { workout ->
+                            LargeWorkoutCard(
+                                workout = workout,
+                                imageRes = getWorkoutImage(workout.name)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
 
-        Spacer(modifier = Modifier.height(20.dp))
+                // Challenges — first 5 system workouts (a subset for now)
+                if (systemWorkouts.isNotEmpty()) {
+                    SectionTitle("Challenges")
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(systemWorkouts.take(5)) { workout ->
+                            SmallCard(
+                                workout = workout,
+                                imageRes = getWorkoutImage(workout.name)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
 
-        // Exercises — small cards
-        SectionTitle("Exercises")
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(exerciseItems) { item ->
-                SmallCard(imageRes = item.imageRes)
+                // Exercises — rest of the system workouts
+                if (systemWorkouts.size > 5) {
+                    SectionTitle("Exercises")
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(systemWorkouts.drop(5)) { workout ->
+                            SmallCard(
+                                workout = workout,
+                                imageRes = getWorkoutImage(workout.name)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
             }
         }
 
@@ -96,14 +157,14 @@ private fun WorkoutHeader() {
             text = "Workout",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color =  Color(0xFF00008B)
+            color = Color(0xFF00008B)
         )
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .size(10.dp)
-                    .background( Color(0xFF00008B), shape = CircleShape)
+                    .background(Color(0xFF00008B), shape = CircleShape)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Box(
@@ -176,7 +237,7 @@ private fun SectionTitle(title: String) {
 // LARGE CARD (Jump Back In)
 // ─────────────────────────────────────────────
 @Composable
-private fun LargeWorkoutCard(imageRes: Int) {
+private fun LargeWorkoutCard(workout: Workout, imageRes: Int) {
     Card(
         modifier = Modifier
             .width(240.dp)
@@ -186,7 +247,7 @@ private fun LargeWorkoutCard(imageRes: Int) {
     ) {
         Image(
             painter = painterResource(id = imageRes),
-            contentDescription = null,
+            contentDescription = workout.name,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
@@ -197,7 +258,7 @@ private fun LargeWorkoutCard(imageRes: Int) {
 // SMALL CARD (Challenges & Exercises)
 // ─────────────────────────────────────────────
 @Composable
-private fun SmallCard(imageRes: Int) {
+private fun SmallCard(workout: Workout, imageRes: Int) {
     Card(
         modifier = Modifier
             .width(220.dp)
@@ -207,39 +268,9 @@ private fun SmallCard(imageRes: Int) {
     ) {
         Image(
             painter = painterResource(id = imageRes),
-            contentDescription = null,
+            contentDescription = workout.name,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
     }
 }
-
-// ─────────────────────────────────────────────
-// DATA — 16 images distributed across sections
-// ─────────────────────────────────────────────
-data class WorkoutItem(val imageRes: Int)
-
-private val jumpBackInItems = listOf(
-    WorkoutItem(R.drawable.fullbody_workout),
-    WorkoutItem(R.drawable.hiit_workout),
-    WorkoutItem(R.drawable.abs_workout),
-    WorkoutItem(R.drawable.cardio_workout),
-    WorkoutItem(R.drawable.chest_workout)
-)
-
-private val challengeItems = listOf(
-    WorkoutItem(R.drawable.corecrush_workout),
-    WorkoutItem(R.drawable.legday_workout),
-    WorkoutItem(R.drawable.glutepower_workout),
-    WorkoutItem(R.drawable.backbuilder_workout),
-    WorkoutItem(R.drawable.yoga_workout)
-)
-
-private val exerciseItems = listOf(
-    WorkoutItem(R.drawable.armstrength_workout),
-    WorkoutItem(R.drawable.back_workout),
-    WorkoutItem(R.drawable.glute_workout),
-    WorkoutItem(R.drawable.lowimpact_workout),
-    WorkoutItem(R.drawable.mobility_workout),
-    WorkoutItem(R.drawable.anotherhiit_workout)
-)

@@ -2,7 +2,6 @@ package com.example.mova.data.remote.api
 
 import com.example.mova.data.models.Exercise
 import com.example.mova.data.models.Workout
-import com.example.mova.data.models.WorkoutLogRequest
 import retrofit2.http.*
 
 interface ApiService {
