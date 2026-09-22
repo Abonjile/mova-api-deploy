@@ -9,9 +9,15 @@ const Exercise = require('../models/Exercise');
 // GET /api/workouts?userId=xxx
 router.get('/', async (req, res) => {
   try {
-    const { userId } = req.query;
+    const { userId, isCustom } = req.query;
     if (!userId) return res.status(400).json({ message: 'userId is required' });
-    const workouts = await Workout.find({ userId });
+    
+    const filter = { userId };
+    if (isCustom !== undefined) {
+      filter.isCustom = isCustom === 'true';
+    }
+    
+    const workouts = await Workout.find(filter);
     res.json(workouts);
   } catch (error) {
     res.status(500).json({ error: error.message });
