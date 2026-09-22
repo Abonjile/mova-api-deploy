@@ -2,6 +2,7 @@ package com.example.mova.data.remote.api
 
 import com.example.mova.data.models.Exercise
 import com.example.mova.data.models.Workout
+import com.example.mova.data.models.WorkoutExercise
 import retrofit2.http.*
 
 interface ApiService {
@@ -20,12 +21,19 @@ interface ApiService {
     @GET("api/workouts/{id}")
     suspend fun getWorkoutById(@Path("id") workoutId: String): Workout
 
+    // Now returns the wrapper so we can extract the workout from it
     @POST("api/workouts")
     suspend fun createWorkout(@Body workout: Workout): Workout
 
     // ─── WORKOUT LOGGING ───
     @POST("api/workouts/log")
     suspend fun logWorkout(@Body request: WorkoutLogRequest): WorkoutLogResponse
+
+    @POST("api/workouts/{workoutId}/exercises")
+    suspend fun createWorkoutExercises(
+        @Path("workoutId") workoutId: String,
+        @Body exercises: List<WorkoutExercise>
+    ): List<WorkoutExercise>
 
     companion object {
         // 10.0.2.2 = localhost from Android emulator (BlueStacks may differ)

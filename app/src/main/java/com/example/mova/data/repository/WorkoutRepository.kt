@@ -2,6 +2,7 @@ package com.example.mova.data.repository
 
 import com.example.mova.data.models.Exercise
 import com.example.mova.data.models.Workout
+import com.example.mova.data.models.WorkoutExercise
 import com.example.mova.data.remote.api.RetrofitClient
 import com.example.mova.data.remote.api.WorkoutLogRequest
 import com.example.mova.data.remote.api.WorkoutLogResponse
@@ -30,6 +31,10 @@ class WorkoutRepository {
 
     suspend fun createWorkout(workout: Workout): Workout {
         return api.createWorkout(workout)
+    }
+
+    suspend fun createWorkoutExercises(workoutId: String, exercises: List<WorkoutExercise>): List<WorkoutExercise> {
+        return api.createWorkoutExercises(workoutId, exercises)
     }
 
     // ─── LOGGING ───
