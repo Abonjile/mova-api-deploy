@@ -271,6 +271,7 @@ fun EditProfileScreen(
                         error = errors["fitnessGoal"],
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     EditProfileTextField(
                         label = "Location",
