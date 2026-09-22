@@ -110,36 +110,23 @@ fun WorkoutInProgressScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Exercise image placeholder
+                    //Exercise image and info
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(220.dp),
+                            .height(210.dp),
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
-                        Box(
+                        Image(
+                            painter = painterResource(id = getExerciseImage(current.name)),
+                            contentDescription = current.name,
+                            contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color(0xFFF0F0F0)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            // TODO: Replace with exercise animation/image
-                            // For now, show the exercise name
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "💪",
-                                    fontSize = 64.sp
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = current.name,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF00008B)
-                                )
-                            }
-                        }
+                                .background(Color.White)
+                                .padding(8.dp)
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
