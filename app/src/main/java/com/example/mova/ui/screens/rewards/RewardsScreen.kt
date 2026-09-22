@@ -33,7 +33,7 @@ fun RewardsScreen() {
                 text = "Rewards",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.background
+                color = MaterialTheme.colorScheme.onBackground
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(8.dp).background(Color.Black, CircleShape))
@@ -86,7 +86,7 @@ fun RewardsScreen() {
             text = "Active Challenge Rewards",
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.background
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(10.dp))
 
