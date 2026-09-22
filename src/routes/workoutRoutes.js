@@ -3,6 +3,8 @@ const router = express.Router();
 const Workout = require('../models/Workout');
 const WorkoutExercise = require('../models/WorkoutExercise');
 const WorkoutLog = require('../models/WorkoutLog');
+const { calculateWorkoutCalories } = require('../utils/calorieCalculator');
+const Exercise = require('../models/Exercise');
 
 // GET /api/workouts?userId=xxx
 router.get('/', async (req, res) => {
@@ -29,7 +31,6 @@ router.post('/', async (req, res) => {
     });
     await workout.save();
 
-    // Save junction entries
     if (exercises && exercises.length > 0) {
       const junctionEntries = exercises.map((ex, index) => ({
         workoutId: workout.workoutId,
@@ -42,14 +43,11 @@ router.post('/', async (req, res) => {
       await WorkoutExercise.insertMany(junctionEntries);
     }
 
-    res.status(201).json({ message: 'Workout created', workout });
+    res.status(201).json(workout);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
-
-const { calculateWorkoutCalories } = require('../utils/calorieCalculator');
-const Exercise = require('../models/Exercise');
 
 // POST /api/workouts/log — Log a completed workout
 router.post('/log', async (req, res) => {
@@ -60,21 +58,18 @@ router.post('/log', async (req, res) => {
       return res.status(400).json({ message: 'userId, workoutId, durationMinutes, and weightAtTime are required' });
     }
 
-    // Get workout's exercises for MET values
     const junctionEntries = await WorkoutExercise.find({ workoutId });
     const exerciseIds = junctionEntries.map(e => e.exerciseId);
     const exercises = await Exercise.find({ exerciseId: { $in: exerciseIds } });
 
-    // Build array with MET values
     const exercisesWithMet = junctionEntries.map(entry => {
       const ex = exercises.find(e => e.exerciseId === entry.exerciseId);
       return {
         metValue: ex ? ex.metValue : 3.8,
-        durationMinutes: durationMinutes / junctionEntries.length // Divide evenly for simplicity
+        durationMinutes: durationMinutes / junctionEntries.length
       };
     });
 
-    // Auto-calculate calories
     const caloriesBurned = calculateWorkoutCalories(exercisesWithMet, weightAtTime);
 
     const log = new WorkoutLog({
@@ -99,6 +94,32 @@ router.post('/log', async (req, res) => {
   }
 });
 
+// POST /api/workouts/:workoutId/exercises — Bulk add exercises to a workout
+router.post('/:workoutId/exercises', async (req, res) => {
+  try {
+    const { workoutId } = req.params;
+    const exercises = req.body;
+
+    if (!Array.isArray(exercises) || exercises.length === 0) {
+      return res.status(400).json({ message: 'Exercises array is required' });
+    }
+
+    const entries = exercises.map((ex, index) => ({
+      workoutId: workoutId,
+      exerciseId: ex.exerciseId,
+      orderNumber: ex.orderNumber || index + 1,
+      sets: ex.sets || 3,
+      reps: ex.reps || 12,
+      restSeconds: ex.restSeconds || 30
+    }));
+
+    const saved = await WorkoutExercise.insertMany(entries);
+    res.status(201).json(saved);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/workouts/:id — Get workout + its exercises
 router.get('/:id', async (req, res) => {
   try {
@@ -113,6 +134,5 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 module.exports = router;
