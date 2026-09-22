@@ -259,10 +259,11 @@ fun WorkoutBuilderLoggerScreen(
                                 val workout = Workout(
                                     userId = userId,
                                     name = workoutName,
-                                    description = description,
+                                    description = "$description||icon:$selectedIcon",
                                     difficulty = difficulty,
                                     durationMinutes = (selectedExercises.sumOf { it.sets * it.reps } * 3) / 60,
-                                    isCustom = true
+                                    isCustom = true,
+                                    icon = selectedIcon
                                 )
                                 val created = repository.createWorkout(workout)
                                 val weList = selectedExercises.mapIndexed { index, sel ->
@@ -324,10 +325,11 @@ fun WorkoutBuilderLoggerScreen(
                                 val workout = Workout(
                                     userId = userId,
                                     name = workoutName,
-                                    description = description,
+                                    description = "$description||icon:$selectedIcon",
                                     difficulty = difficulty,
                                     durationMinutes = (selectedExercises.sumOf { it.sets * it.reps } * 3) / 60,
-                                    isCustom = true
+                                    isCustom = true,
+                                    icon = selectedIcon
                                 )
                                 val created = repository.createWorkout(workout)
                                 val weList = selectedExercises.mapIndexed { index, sel ->

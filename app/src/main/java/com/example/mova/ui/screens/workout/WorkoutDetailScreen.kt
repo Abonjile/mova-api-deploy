@@ -132,7 +132,7 @@ fun WorkoutDetailScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = w.description,
+                        text = w.displayDescription,
                         fontSize = 14.sp,
                         color = Color(0xFF757575)
                     )
