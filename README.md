@@ -1,4 +1,6 @@
-# Byte Club — MOVA Fitness Tracking Application
+# Byte Club — MOVA Fitness Tracking Application (PROG7314 POE Part 2) 
+
+Youtube link: https://www.youtube.com/watch?v=n7WB0g379pA
 
 **Hello from Byte Club!**
 
@@ -33,7 +35,6 @@ Our team split the work across three feature areas:
   * [Run Unit Tests](#run-unit-tests)
   * [Environment Variables](#environment-variables-mova-apienv)
 * [AI Write-Up Report](#ai-write-up-report)
-* [Acknowledgements](#acknowledgements)
 * [References](#references)
 
 
