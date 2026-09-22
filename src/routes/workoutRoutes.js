@@ -111,6 +111,19 @@ router.post('/log', async (req, res) => {
   }
 });
 
+// GET /api/workouts/logs?userId=xxx — Get all logs for a user
+router.get('/logs', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ message: 'userId is required' });
+
+    const logs = await WorkoutLog.find({ userId }).sort({ createdAt: -1 });
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // POST /api/workouts/:workoutId/exercises — Bulk add exercises to a workout
 router.post('/:workoutId/exercises', async (req, res) => {
   try {
