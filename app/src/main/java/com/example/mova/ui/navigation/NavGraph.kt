@@ -16,6 +16,7 @@ import com.example.mova.ui.screens.profile.ProfileScreen
 import com.example.mova.ui.screens.workout.WorkoutDetailScreen
 import com.example.mova.ui.screens.workout.WorkoutInProgressScreen
 import com.example.mova.ui.screens.workout.WorkoutScreen
+import com.example.mova.ui.screens.workout.WorkoutBuilderLoggerScreen
 
 sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val label: String) {
     object Challenges : Screen("challenges", Icons.Default.RunCircle, "Challenges")
@@ -31,6 +32,8 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
     object WorkoutInProgress : Screen("workout_in_progress/{workoutId}", Icons.Default.PlayArrow, "In Progress") {
         fun createRoute(workoutId: String) = "workout_in_progress/$workoutId"
     }
+
+    object WorkoutBuilderLogger : Screen("workout_builder_logger", Icons.Default.Add, "Create")
 }
 
 @Composable
@@ -48,7 +51,15 @@ fun MovaNavGraph(
             WorkoutScreen(
                 onWorkoutClick = { workoutId ->
                     navController.navigate(Screen.WorkoutDetail.createRoute(workoutId))
+                },
+                onAddClick = {
+                    navController.navigate(Screen.WorkoutBuilderLogger.route)
                 }
+            )
+        }
+        composable(Screen.WorkoutBuilderLogger.route) {
+            WorkoutBuilderLoggerScreen(
+                onBack = { navController.popBackStack() }
             )
         }
         composable(Screen.Challenges.route) {

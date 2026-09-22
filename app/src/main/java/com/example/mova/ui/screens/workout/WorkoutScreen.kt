@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -46,6 +47,7 @@ import com.example.mova.data.repository.WorkoutRepository
 fun WorkoutScreen(
     modifier: Modifier = Modifier,
     onWorkoutClick: (String) -> Unit = {},
+    onAddClick: () -> Unit = {},
     repository: WorkoutRepository = WorkoutRepository()
 ) {
     // ── State ─────────────────────────────────────────────────────────────
@@ -76,7 +78,7 @@ fun WorkoutScreen(
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
-        WorkoutHeader()
+        WorkoutHeader(onAddClick = onAddClick)
         SearchBar()
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -177,7 +179,7 @@ fun WorkoutScreen(
 // HEADER — "Workout" on the left, "MOVA ● ●" on the right
 // ─────────────────────────────────────────────────────────────────────────
 @Composable
-private fun WorkoutHeader() {
+private fun WorkoutHeader(onAddClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -185,22 +187,32 @@ private fun WorkoutHeader() {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "Workout",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF00008B)
-        )
-
+        // Left side: Workout title + plus button
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Dark blue dot (matches primary brand colour)
+            Text(
+                text = "Workout",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF00008B)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(onClick = onAddClick) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Create Workout",
+                    tint = Color(0xFF00008B)
+                )
+            }
+        }
+
+        // Right side: MOVA branding
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .size(10.dp)
                     .background(Color(0xFF00008B), shape = CircleShape)
             )
             Spacer(modifier = Modifier.width(4.dp))
-            // Red accent dot
             Box(
                 modifier = Modifier
                     .size(10.dp)
