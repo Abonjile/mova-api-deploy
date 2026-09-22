@@ -29,16 +29,13 @@ const WorkoutSchema = new mongoose.Schema({
     type: Number,
     default: 20
   },
-  exercises: [{
-    exerciseId: { type: String, ref: 'Exercise' },
-    sets: { type: Number, default: 3 },
-    reps: { type: Number, default: 12 },
-    restSeconds: { type: Number, default: 30 }
-  }],
- 
   isCustom: {
     type: Boolean,
     default: false
+  },
+  iconName: {
+    type: String,
+    default: 'fitness'
   },
   createdAt: {
     type: Date,
