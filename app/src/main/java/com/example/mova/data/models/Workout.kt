@@ -11,6 +11,13 @@ data class Workout(
     @SerializedName("difficulty") val difficulty: String = "BEGINNER",
     @SerializedName("durationMinutes") val durationMinutes: Int = 20,
     @SerializedName("isCustom") val isCustom: Boolean = false,
+    @SerializedName("icon") val icon: String = "fitness",
     @SerializedName("createdAt") val createdAt: String? = null,
     @SerializedName("exercises") val exercises: List<WorkoutExercise> = emptyList()
-)
+) {
+    val displayIcon: String
+        get() = if (description.contains("||icon:")) description.substringAfter("||icon:") else icon
+
+    val displayDescription: String
+        get() = if (description.contains("||icon:")) description.substringBefore("||icon:") else description
+}

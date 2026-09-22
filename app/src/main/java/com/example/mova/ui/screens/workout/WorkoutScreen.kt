@@ -12,8 +12,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,28 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mova.data.local.RecentWorkoutsStore
 import com.example.mova.data.models.Workout
 import com.example.mova.data.repository.WorkoutRepository
 
-/**
- * WorkoutScreen is the main dashboard for the workout feature.
- *
- * Responsibilities:
- *  - Fetches system workouts and user-specific workouts from the backend API.
- *  - Displays three horizontal scrolling sections:
- *      1. "Jump Back In"  – recent / ongoing workouts
- *      2. "Challenges"    – a curated subset of workouts
- *      3. "Exercises"     – the remaining system workouts
- *  - Handles loading and error states gracefully.
- *
- * @param modifier       Modifier from the parent composable.
- * @param onWorkoutClick Callback invoked when a card is tapped, passing the workoutId.
- * @param repository     Data repository used to fetch workouts (injected for testability).
- */
+// WorkoutScreen is the main dashboard for the workout feature.
+// Loads system workouts, user-created workouts, and recent workouts.
+// Sections: Jump Back In, Challenges, Exercises, My Workouts.
 @Composable
 fun WorkoutScreen(
     modifier: Modifier = Modifier,
@@ -50,19 +44,32 @@ fun WorkoutScreen(
     onAddClick: () -> Unit = {},
     repository: WorkoutRepository = WorkoutRepository()
 ) {
-    // ── State ─────────────────────────────────────────────────────────────
+    // State
     var systemWorkouts by remember { mutableStateOf<List<Workout>>(emptyList()) }
     var userWorkouts by remember { mutableStateOf<List<Workout>>(emptyList()) }
+    var customWorkouts by remember { mutableStateOf<List<Workout>>(emptyList()) }
+    var recentWorkouts by remember { mutableStateOf<List<Workout>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    // ── Load data on first composition ────────────────────────────────────
+    val context = LocalContext.current
+    val recentStore = remember { RecentWorkoutsStore(context) }
+
+    // Load everything on first composition
     LaunchedEffect(Unit) {
         try {
             isLoading = true
             systemWorkouts = repository.getSystemWorkouts()
-            // TODO: Replace with real logged-in user ID once authentication is wired up.
             userWorkouts = repository.getUserWorkouts("test_user_123")
+            customWorkouts = repository.getCustomWorkouts("test_user_123")
+
+            // Resolve recent IDs into actual workout objects
+            val recentIds = recentStore.getRecentIds()
+            val allAvailable = systemWorkouts + customWorkouts
+            recentWorkouts = recentIds.mapNotNull { id ->
+                allAvailable.firstOrNull { it.workoutId == id }
+            }
+
             errorMessage = null
         } catch (e: Exception) {
             errorMessage = "Could not load workouts: ${e.message}"
@@ -71,7 +78,12 @@ fun WorkoutScreen(
         }
     }
 
-    // ── Layout ────────────────────────────────────────────────────────────
+    // Handles tapping a card: saves to recents, then navigates
+    val onCardClick: (Workout) -> Unit = { workout ->
+        recentStore.addRecent(workout.workoutId)
+        onWorkoutClick(workout.workoutId)
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -83,7 +95,6 @@ fun WorkoutScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         when {
-            // Loading spinner while API request is in flight
             isLoading -> {
                 Box(
                     modifier = Modifier.fillMaxWidth().height(200.dp),
@@ -92,47 +103,41 @@ fun WorkoutScreen(
                     CircularProgressIndicator()
                 }
             }
-
-            // Error state if the API call fails
             errorMessage != null -> {
                 Box(
                     modifier = Modifier.fillMaxWidth().height(200.dp).padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = errorMessage ?: "",
-                        color = Color.Red,
-                        fontSize = 14.sp
-                    )
+                    Text(text = errorMessage ?: "", color = Color.Red, fontSize = 14.sp)
                 }
             }
-
-            // Data loaded — render sections
             else -> {
-                // ── Jump Back In ─────────────────────────────────────────
-                // Currently falls back to system workouts if the user has no history.
-                // Will be replaced with real "recently viewed" tracking in a later phase.
-                val recent = userWorkouts.ifEmpty { systemWorkouts }.take(5)
-                if (recent.isNotEmpty()) {
+                // ── Jump Back In ──
+                if (recentWorkouts.isNotEmpty()) {
                     SectionTitle("Jump Back In")
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(recent) { workout ->
-                            LargeWorkoutCard(
-                                workout = workout,
-                                imageRes = getWorkoutImage(workout.name),
-                                onClick = { onWorkoutClick(workout.workoutId) }
-                            )
+                        items(recentWorkouts) { workout ->
+                            if (workout.isCustom) {
+                                LargeCustomWorkoutCard(
+                                    workout = workout,
+                                    onClick = { onCardClick(workout) }
+                                )
+                            } else {
+                                LargeWorkoutCard(
+                                    workout = workout,
+                                    imageRes = getWorkoutImage(workout.name),
+                                    onClick = { onCardClick(workout) }
+                                )
+                            }
                         }
                     }
                     Spacer(modifier = Modifier.height(20.dp))
                 }
 
-                // ── Challenges ───────────────────────────────────────────
-                // Currently the first 5 system workouts. Will be tied to actual
-                // challenge data in a later phase.
+                // ── Challenges ──
                 if (systemWorkouts.isNotEmpty()) {
                     SectionTitle("Challenges")
                     LazyRow(
@@ -143,15 +148,14 @@ fun WorkoutScreen(
                             SmallCard(
                                 workout = workout,
                                 imageRes = getWorkoutImage(workout.name),
-                                onClick = { onWorkoutClick(workout.workoutId) }
+                                onClick = { onCardClick(workout) }
                             )
                         }
                     }
                     Spacer(modifier = Modifier.height(20.dp))
                 }
 
-                // ── Exercises ────────────────────────────────────────────
-                // Remaining system workouts after the first 5.
+                // ── Exercises ──
                 if (systemWorkouts.size > 5) {
                     SectionTitle("Exercises")
                     LazyRow(
@@ -162,7 +166,24 @@ fun WorkoutScreen(
                             SmallCard(
                                 workout = workout,
                                 imageRes = getWorkoutImage(workout.name),
-                                onClick = { onWorkoutClick(workout.workoutId) }
+                                onClick = { onCardClick(workout) }
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+
+                // ── My Workouts ──
+                if (customWorkouts.isNotEmpty()) {
+                    SectionTitle("My Workouts")
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(customWorkouts) { workout ->
+                            CustomWorkoutCard(
+                                workout = workout,
+                                onClick = { onCardClick(workout) }
                             )
                         }
                     }
@@ -175,9 +196,7 @@ fun WorkoutScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// HEADER — "Workout" on the left, "MOVA ● ●" on the right
-// ─────────────────────────────────────────────────────────────────────────
+// HEADER
 @Composable
 private fun WorkoutHeader(onAddClick: () -> Unit = {}) {
     Row(
@@ -187,7 +206,6 @@ private fun WorkoutHeader(onAddClick: () -> Unit = {}) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Left side: Workout title + plus button
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "Workout",
@@ -205,7 +223,6 @@ private fun WorkoutHeader(onAddClick: () -> Unit = {}) {
             }
         }
 
-        // Right side: MOVA branding
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
@@ -229,9 +246,7 @@ private fun WorkoutHeader(onAddClick: () -> Unit = {}) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// SEARCH BAR — non-functional placeholder for the POE phase
-// ─────────────────────────────────────────────────────────────────────────
+// SEARCH BAR
 @Composable
 private fun SearchBar() {
     Row(
@@ -265,9 +280,7 @@ private fun SearchBar() {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// SECTION TITLE — small gray header above each horizontal row
-// ─────────────────────────────────────────────────────────────────────────
+// SECTION TITLE
 @Composable
 private fun SectionTitle(title: String) {
     Text(
@@ -279,10 +292,7 @@ private fun SectionTitle(title: String) {
     )
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// LARGE CARD — used in the "Jump Back In" section
-// Tap → navigates to the workout detail screen.
-// ─────────────────────────────────────────────────────────────────────────
+// LARGE CARD — photo card for system workouts in Jump Back In
 @Composable
 private fun LargeWorkoutCard(
     workout: Workout,
@@ -306,10 +316,68 @@ private fun LargeWorkoutCard(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// SMALL CARD — used in the "Challenges" and "Exercises" sections
-// Tap → navigates to the workout detail screen.
-// ─────────────────────────────────────────────────────────────────────────
+// LARGE CUSTOM CARD — no image, colored card for custom workouts in Jump Back In
+@Composable
+private fun LargeCustomWorkoutCard(
+    workout: Workout,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .width(240.dp)
+            .height(160.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF00008B)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Icon circle — picks the icon based on workout.icon
+            val iconVector = when (workout.icon) {
+                "fire" -> Icons.Default.LocalFireDepartment
+                "star" -> Icons.Default.Star
+                "run" -> Icons.Default.DirectionsRun
+                else -> Icons.Default.FitnessCenter
+            }
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(Color.White.copy(alpha = 0.2f), shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = iconVector,
+                    contentDescription = workout.icon,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            // Workout info
+            Column {
+                Text(
+                    text = workout.name,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    maxLines = 2
+                )
+                Text(
+                    text = "${workout.difficulty} · ${workout.durationMinutes} min",
+                    fontSize = 11.sp,
+                    color = Color.White.copy(alpha = 0.8f)
+                )
+            }
+        }
+    }
+}
+
+// SMALL CARD — used in Challenges and Exercises sections
 @Composable
 private fun SmallCard(
     workout: Workout,
@@ -330,5 +398,63 @@ private fun SmallCard(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
+    }
+}
+
+// CUSTOM CARD — small icon-based card for My Workouts
+@Composable
+private fun CustomWorkoutCard(
+    workout: Workout,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .width(150.dp)
+            .height(150.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            val iconVector = when (workout.icon) {
+                "fire" -> Icons.Default.LocalFireDepartment
+                "star" -> Icons.Default.Star
+                "run" -> Icons.Default.DirectionsRun
+                else -> Icons.Default.FitnessCenter
+            }
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(Color(0xFF00008B), shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = iconVector,
+                    contentDescription = workout.icon,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Column {
+                Text(
+                    text = workout.name,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF00008B),
+                    maxLines = 2
+                )
+                Text(
+                    text = workout.difficulty,
+                    fontSize = 10.sp,
+                    color = Color(0xFF757575)
+                )
+            }
+        }
     }
 }
