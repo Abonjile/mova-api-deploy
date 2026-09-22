@@ -30,6 +30,7 @@ import com.example.mova.data.models.Workout
 import com.example.mova.data.models.WorkoutExercise
 import com.example.mova.data.remote.api.WorkoutLogRequest
 import com.example.mova.data.repository.WorkoutRepository
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import com.example.mova.data.local.MovaDatabase
 import com.example.mova.data.repository.UserRepository
@@ -58,10 +59,12 @@ private const val SECONDS_PER_REP = 3.0
 
 @Composable
 fun WorkoutBuilderLoggerScreen(
-    userId: String = "test_user_123",
     onBack: () -> Unit = {},
-    repository: WorkoutRepository = WorkoutRepository()
+    repository: WorkoutRepository = WorkoutRepository(),
+    viewModel: WorkoutViewModel = hiltViewModel()
 ) {
+    val userIdState by viewModel.userId.collectAsState()
+    val userId = userIdState ?: "test_user_123"   // fallback
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current

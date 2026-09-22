@@ -390,40 +390,39 @@ fun ProfileContent(
                     TextButton(onClick = { showAddDialog = false }) { Text("Cancel") }
                 }
             )
-
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // The user's actual goal (or empty state)
-                val goal = user.fitnessGoal?.takeIf { it.isNotBlank() }
-                if (goal != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(MovaTeal)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = goal,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                } else {
-                    Text(
-                        text = "No goal set yet — tap edit to add one",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
-                }
-            }
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // The user's actual goal (or empty state)
+        val goal = user.fitnessGoal?.takeIf { it.isNotBlank() }
+        if (goal != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(MovaTeal)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = goal,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        } else {
+            Text(
+                text = "No goal set yet — tap edit to add one",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.7f)
+            )
+        }
+
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -449,7 +448,7 @@ fun ProfileContent(
 
         Spacer(modifier = Modifier.height(24.dp))
     }
-
+}
 
 // STAT CARD - REUSABLE COMPONENT
 
