@@ -16,7 +16,10 @@ interface ApiService {
 
     // ─── WORKOUTS ───
     @GET("api/workouts")
-    suspend fun getWorkoutsByUser(@Query("userId") userId: String): List<Workout>
+    suspend fun getWorkoutsByUser(
+        @Query("userId") userId: String,
+        @Query("isCustom") isCustom: Boolean? = null
+    ): List<Workout>
 
     @GET("api/workouts/{id}")
     suspend fun getWorkoutById(@Path("id") workoutId: String): Workout

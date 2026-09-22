@@ -41,4 +41,9 @@ class WorkoutRepository {
     suspend fun logWorkout(request: WorkoutLogRequest): WorkoutLogResponse {
         return api.logWorkout(request)
     }
+
+    // Fetch only custom workouts for a user
+    suspend fun getCustomWorkouts(userId: String): List<Workout> {
+        return api.getWorkoutsByUser(userId, isCustom = true)
+    }
 }
