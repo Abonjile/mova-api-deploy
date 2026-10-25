@@ -29,7 +29,7 @@ const getGenderFactor = (gender) => {
 const calculateExerciseDuration = (sets, difficulty) => {
   const workSeconds = getWorkSecondsPerSet(difficulty);
   const restSeconds = 10;
-  return sets * (workSeconds + restSeconds);
+  return sets * workSeconds;
 };
 
 // Calculates calories burned for a single exercise.

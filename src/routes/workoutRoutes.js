@@ -109,53 +109,36 @@ router.post('/start', async (req, res) => {
 router.post('/log-exercise', async (req, res) => {
   try {
     const {
-      workoutLogId,
-      workoutId,
-      exerciseId,
-      userId,
-      orderNumber,
-      sets,
-      repsPerSet,
-      difficulty,
-      repsCompleted,
-      completed,
-      weightAtTime,
-      genderAtTime
+      workoutLogId, workoutId, exerciseId, userId,
+      orderNumber, sets, repsPerSet, difficulty,
+      repsCompleted, completed, weightAtTime, genderAtTime
     } = req.body;
 
-    // Validate required fields
     if (!workoutLogId || !workoutId || !exerciseId || !userId) {
       return res.status(400).json({
         message: 'workoutLogId, workoutId, exerciseId, and userId are required'
       });
     }
 
-    // Confirm the session log exists
     const workoutLog = await WorkoutLog.findOne({ workoutLogId });
     if (!workoutLog) {
       return res.status(404).json({ message: 'Workout session not found' });
     }
 
-    // Look up the exercise to get its MET value
     const exercise = await Exercise.findOne({ exerciseId });
     if (!exercise) {
       return res.status(404).json({ message: 'Exercise not found' });
     }
 
-    // Calculate duration and calories for this exercise
-    const durationSeconds = calculateExerciseDuration(sets || 3, difficulty || 'BEGINNER');
-    const caloriesBurned = calculateExerciseCalories(
-      exercise.metValue || 3.8,
-      weightAtTime || 70,
-      durationSeconds,
-      genderAtTime || 'MALE',
-      completed !== false  // default true if not provided
-    );
+    // Skipped exercises have zero duration and zero calories
+    const isCompleted = completed !== false;
+    const durationSeconds = isCompleted ? calculateExerciseDuration(sets || 3, difficulty || 'BEGINNER') : 0;
+    const caloriesBurned = isCompleted
+      ? calculateExerciseCalories(exercise.metValue || 3.8, weightAtTime || 70, durationSeconds, genderAtTime || 'MALE', true)
+      : 0;
 
-    // If the exercise was skipped, force reps to 0
-    const finalReps = completed === false ? 0 : (repsCompleted || sets * repsPerSet || 0);
+    const finalReps = isCompleted ? (repsCompleted || sets * repsPerSet || 0) : 0;
 
-    // Create the exercise log
     const exerciseLog = new ExerciseLog({
       workoutLogId,
       exerciseId,
@@ -166,13 +149,13 @@ router.post('/log-exercise', async (req, res) => {
       durationSeconds,
       repsCompleted: finalReps,
       caloriesBurned,
-      completed: completed !== false
+      completed: isCompleted
     });
 
     await exerciseLog.save();
 
     res.status(201).json({
-      message: 'Exercise logged',
+      message: isCompleted ? 'Exercise logged' : 'Exercise skipped',
       exerciseLog,
       caloriesBurned
     });

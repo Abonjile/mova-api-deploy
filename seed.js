@@ -8,15 +8,15 @@ const WorkoutExercise = require('./src/models/WorkoutExercise');
 // 16 EXERCISES
 // ─────────────────────────────────────────────
 const exercises = [
-  { name: 'Push-ups', description: 'Standard push-up', targetMuscleGroup: 'Chest', difficulty: 'BEGINNER', metValue: 3.8, defaultSets: 3, defaultReps: 12, videoUrl: '' },
-  { name: 'Squats', description: 'Bodyweight squat', targetMuscleGroup: 'Legs', difficulty: 'BEGINNER', metValue: 5.0, defaultSets: 3, defaultReps: 15, videoUrl: '' },
-  { name: 'Plank', description: 'Hold plank position', targetMuscleGroup: 'Core', difficulty: 'INTERMEDIATE', metValue: 3.0, defaultSets: 3, defaultReps: 30, videoUrl: '' },
-  { name: 'Lunges', description: 'Forward lunge', targetMuscleGroup: 'Legs', difficulty: 'INTERMEDIATE', metValue: 4.0, defaultSets: 3, defaultReps: 10, videoUrl: '' },
-  { name: 'Burpees', description: 'Full body explosive movement', targetMuscleGroup: 'Full Body', difficulty: 'ADVANCED', metValue: 8.0, defaultSets: 3, defaultReps: 10, videoUrl: '' },
+  { name: 'Push-ups', description: 'Standard push-up', targetMuscleGroup: 'Chest', difficulty: 'BEGINNER', metValue: 4.2, defaultSets: 3, defaultReps: 12, videoUrl: '' },
+  { name: 'Squats', description: 'Bodyweight squat', targetMuscleGroup: 'Legs', difficulty: 'BEGINNER', metValue: 5.5, defaultSets: 3, defaultReps: 15, videoUrl: '' },
+  { name: 'Plank', description: 'Hold plank position', targetMuscleGroup: 'Core', difficulty: 'INTERMEDIATE', metValue: 3.8, defaultSets: 3, defaultReps: 30, videoUrl: '' },
+  { name: 'Lunges', description: 'Forward lunge', targetMuscleGroup: 'Legs', difficulty: 'INTERMEDIATE', metValue: 4.5, defaultSets: 3, defaultReps: 10, videoUrl: '' },
+  { name: 'Burpees', description: 'Full body explosive movement', targetMuscleGroup: 'Full Body', difficulty: 'ADVANCED', metValue: 10.0, defaultSets: 3, defaultReps: 10, videoUrl: '' },
   { name: 'Jumping Jacks', description: 'Cardio warm-up', targetMuscleGroup: 'Full Body', difficulty: 'BEGINNER', metValue: 7.0, defaultSets: 3, defaultReps: 20, videoUrl: '' },
   { name: 'Mountain Climbers', description: 'Dynamic core exercise', targetMuscleGroup: 'Core', difficulty: 'INTERMEDIATE', metValue: 8.0, defaultSets: 3, defaultReps: 20, videoUrl: '' },
-  { name: 'Glute Bridges', description: 'Hip raise for glutes', targetMuscleGroup: 'Glutes', difficulty: 'BEGINNER', metValue: 3.5, defaultSets: 3, defaultReps: 15, videoUrl: '' },
-  { name: 'Donkey Kicks', description: 'Quadruped hip extension', targetMuscleGroup: 'Glutes', difficulty: 'BEGINNER', metValue: 3.5, defaultSets: 3, defaultReps: 12, videoUrl: '' },
+  { name: 'Glute Bridges', description: 'Hip raise for glutes', targetMuscleGroup: 'Glutes', difficulty: 'BEGINNER', metValue: 4.0, defaultSets: 3, defaultReps: 15, videoUrl: '' },
+  { name: 'Donkey Kicks', description: 'Quadruped hip extension', targetMuscleGroup: 'Glutes', difficulty: 'BEGINNER', metValue: 4.5, defaultSets: 3, defaultReps: 12, videoUrl: '' },
   { name: 'Bicycle Crunches', description: 'Alternating ab crunch', targetMuscleGroup: 'Core', difficulty: 'INTERMEDIATE', metValue: 4.0, defaultSets: 3, defaultReps: 20, videoUrl: '' },
   { name: 'Russian Twists', description: 'Seated rotational core', targetMuscleGroup: 'Core', difficulty: 'INTERMEDIATE', metValue: 4.0, defaultSets: 3, defaultReps: 20, videoUrl: '' },
   { name: 'Tricep Dips', description: 'Chair tricep dip', targetMuscleGroup: 'Arms', difficulty: 'INTERMEDIATE', metValue: 5.0, defaultSets: 3, defaultReps: 12, videoUrl: '' },
