@@ -3,8 +3,13 @@ const router = express.Router();
 const Workout = require('../models/Workout');
 const WorkoutExercise = require('../models/WorkoutExercise');
 const WorkoutLog = require('../models/WorkoutLog');
-const { calculateWorkoutCalories } = require('../utils/calorieCalculator');
 const Exercise = require('../models/Exercise');
+const ExerciseLog = require('../models/ExerciseLog');
+const {
+  calculateWorkoutCalories,
+  calculateExerciseDuration,
+  calculateExerciseCalories
+} = require('../utils/calorieCalculator');
 
 // GET /api/workouts?userId=xxx
 router.get('/', async (req, res) => {
@@ -50,6 +55,127 @@ router.post('/', async (req, res) => {
     }
 
     res.status(201).json(workout);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/workouts/start — Create a new workout session (empty WorkoutLog)
+// Called when the user taps "Start Workout". Returns the workoutLogId so the
+// client can attach per-exercise logs to this session as the user progresses.
+router.post('/start', async (req, res) => {
+  try {
+    const { userId, workoutId } = req.body;
+
+    if (!userId || !workoutId) {
+      return res.status(400).json({ message: 'userId and workoutId are required' });
+    }
+
+    // Confirm the workout exists
+    const workout = await Workout.findOne({ workoutId });
+    if (!workout) {
+      return res.status(404).json({ message: 'Workout not found' });
+    }
+
+    // Create an empty session log — totals are filled in when the workout finishes
+    const workoutLog = new WorkoutLog({
+      userId,
+      workoutId,
+      durationMinutes: 0,
+      caloriesBurned: 0,
+      weightAtTime: 0,
+      completed: false,
+      userNote: '',
+      isSynced: true
+    });
+
+    await workoutLog.save();
+
+    res.status(201).json({
+      message: 'Workout session started',
+      workoutLogId: workoutLog.workoutLogId,
+      workoutId: workout.workoutId,
+      userId: workoutLog.userId,
+      startedAt: workoutLog.createdAt
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/workouts/log-exercise — Log one exercise within an active workout session
+// Called each time a user finishes (or skips) an exercise.
+// The client sends the workoutLogId created by /start.
+router.post('/log-exercise', async (req, res) => {
+  try {
+    const {
+      workoutLogId,
+      workoutId,
+      exerciseId,
+      userId,
+      orderNumber,
+      sets,
+      repsPerSet,
+      difficulty,
+      repsCompleted,
+      completed,
+      weightAtTime,
+      genderAtTime
+    } = req.body;
+
+    // Validate required fields
+    if (!workoutLogId || !workoutId || !exerciseId || !userId) {
+      return res.status(400).json({
+        message: 'workoutLogId, workoutId, exerciseId, and userId are required'
+      });
+    }
+
+    // Confirm the session log exists
+    const workoutLog = await WorkoutLog.findOne({ workoutLogId });
+    if (!workoutLog) {
+      return res.status(404).json({ message: 'Workout session not found' });
+    }
+
+    // Look up the exercise to get its MET value
+    const exercise = await Exercise.findOne({ exerciseId });
+    if (!exercise) {
+      return res.status(404).json({ message: 'Exercise not found' });
+    }
+
+    // Calculate duration and calories for this exercise
+    const durationSeconds = calculateExerciseDuration(sets || 3, difficulty || 'BEGINNER');
+    const caloriesBurned = calculateExerciseCalories(
+      exercise.metValue || 3.8,
+      weightAtTime || 70,
+      durationSeconds,
+      genderAtTime || 'MALE',
+      completed !== false  // default true if not provided
+    );
+
+    // If the exercise was skipped, force reps to 0
+    const finalReps = completed === false ? 0 : (repsCompleted || sets * repsPerSet || 0);
+
+    // Create the exercise log
+    const exerciseLog = new ExerciseLog({
+      workoutLogId,
+      exerciseId,
+      orderNumber: orderNumber || 1,
+      sets: sets || 3,
+      repsPerSet: repsPerSet || 12,
+      difficulty: difficulty || 'BEGINNER',
+      durationSeconds,
+      repsCompleted: finalReps,
+      caloriesBurned,
+      completed: completed !== false
+    });
+
+    await exerciseLog.save();
+
+    res.status(201).json({
+      message: 'Exercise logged',
+      exerciseLog,
+      caloriesBurned
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

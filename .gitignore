@@ -35,3 +35,4 @@ build/
 .cxx
 local.properties
 .env
+.env
