@@ -1,0 +1,33 @@
+$kind: http-request
+name: Add Challenge Note
+method: PUT
+url: '{{baseUrl}}/api/challenges/:id/note'
+order: 6000
+description: |-
+  Add or update a custom note on a user's challenge entry.
+  Both `userId` and `customNote` are required in the body.
+pathVariables:
+  - key: id
+    value: '{{challengeId}}'
+    description: The unique identifier of the challenge
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "userId": "{{userId}}",
+      "customNote": "Feeling stronger every day!"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("Response contains customNote", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("customNote");
+      });

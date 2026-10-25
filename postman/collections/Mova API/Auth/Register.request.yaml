@@ -1,0 +1,33 @@
+$kind: http-request
+name: Register
+method: POST
+url: '{{baseUrl}}/api/auth/register'
+order: 1000
+description: |-
+  Register a new user account.
+  Returns 201 on success, 400 if the user already exists.
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "Jane Doe",
+      "email": "jane.doe@example.com",
+      "ssoProvider": "google",
+      "ssoProviderId": "google-uid-12345"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 201", function () {
+        pm.response.to.have.status(201);
+      });
+      pm.test("Response contains user object", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("user");
+        pm.expect(json.user).to.have.property("userId");
+        pm.expect(json.user).to.have.property("email");
+      });

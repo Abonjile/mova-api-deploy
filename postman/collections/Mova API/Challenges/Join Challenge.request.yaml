@@ -1,0 +1,32 @@
+$kind: http-request
+name: Join Challenge
+method: POST
+url: '{{baseUrl}}/api/challenges/:id/join'
+order: 3000
+description: |-
+  Enroll a user in a challenge. Creates a UserChallenge record with a calculated end date.
+  Returns 400 if the user has already joined. `userId` is required in the body.
+pathVariables:
+  - key: id
+    value: '{{challengeId}}'
+    description: The unique identifier of the challenge
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "userId": "{{userId}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 201", function () {
+        pm.response.to.have.status(201);
+      });
+      pm.test("Response contains userChallenge", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("userChallenge");
+      });

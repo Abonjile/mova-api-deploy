@@ -1,0 +1,4 @@
+$kind: collection
+name: Challenges
+description: Endpoints for browsing, joining, tracking progress, and completing fitness challenges.
+order: 4000

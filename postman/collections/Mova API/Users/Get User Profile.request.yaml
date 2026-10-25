@@ -1,0 +1,21 @@
+$kind: http-request
+name: Get User Profile
+method: GET
+url: '{{baseUrl}}/api/users/:userId'
+order: 1000
+description: Retrieve a user's full profile by their userId. Returns 404 if not found.
+pathVariables:
+  - key: userId
+    value: '{{userId}}'
+    description: The unique identifier of the user
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("Response contains userId", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("userId");
+      });

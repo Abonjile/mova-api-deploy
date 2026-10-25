@@ -1,0 +1,33 @@
+$kind: http-request
+name: Create Exercise
+method: POST
+url: '{{baseUrl}}/api/exercises'
+order: 3000
+description: |-
+  Create a new exercise record. Intended for admin/seed use.
+  Accepts any valid Exercise model fields in the request body.
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Push Up",
+      "description": "Classic upper body exercise",
+      "muscleGroup": "chest",
+      "difficulty": "beginner",
+      "metValue": 3.8,
+      "isActive": true
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 201", function () {
+        pm.response.to.have.status(201);
+      });
+      pm.test("Response contains exerciseId", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("exerciseId");
+      });

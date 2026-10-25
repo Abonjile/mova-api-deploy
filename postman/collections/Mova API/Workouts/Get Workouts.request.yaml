@@ -1,0 +1,26 @@
+$kind: http-request
+name: Get Workouts
+method: GET
+url: '{{baseUrl}}/api/workouts'
+order: 1000
+description: |-
+  Get all workouts for a user. Optionally filter by isCustom flag.
+  Query parameter `userId` is required.
+queryParams:
+  - key: userId
+    value: '{{userId}}'
+    description: Required. The user whose workouts to retrieve.
+  - key: isCustom
+    value: 'true'
+    description: 'Optional. Filter by custom workouts (true/false).'
+    disabled: true
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("Response is an array", function () {
+        pm.expect(pm.response.json()).to.be.an("array");
+      });
