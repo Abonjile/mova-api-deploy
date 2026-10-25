@@ -282,7 +282,7 @@ fun WorkoutBuilderLoggerScreen(
                                     name = workoutName,
                                     description = "$description||icon:$selectedIcon",
                                     difficulty = difficulty,
-                                    durationMinutes = (selectedExercises.sumOf { it.sets * it.reps } * 3) / 60,
+                                    durationMinutes = maxOf(1, (selectedExercises.sumOf { it.sets * it.reps } * 3) / 60),
                                     isCustom = true,
                                     icon = selectedIcon
                                 )
@@ -348,7 +348,7 @@ fun WorkoutBuilderLoggerScreen(
                                     name = workoutName,
                                     description = "$description||icon:$selectedIcon",
                                     difficulty = difficulty,
-                                    durationMinutes = (selectedExercises.sumOf { it.sets * it.reps } * 3) / 60,
+                                    durationMinutes = maxOf(1, (selectedExercises.sumOf { it.sets * it.reps } * 3) / 60),
                                     isCustom = true,
                                     icon = selectedIcon
                                 )
