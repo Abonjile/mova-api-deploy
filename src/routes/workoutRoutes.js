@@ -181,6 +181,56 @@ router.post('/log-exercise', async (req, res) => {
   }
 });
 
+// POST /api/workouts/finish — Finalise a workout session
+// Called when the user completes the last exercise or taps Quit.
+// Aggregates all ExerciseLog entries for the session into the WorkoutLog summary.
+router.post('/finish', async (req, res) => {
+  try {
+    const { workoutLogId, userId, workoutId, completed, userNote } = req.body;
+
+    if (!workoutLogId) {
+      return res.status(400).json({ message: 'workoutLogId is required' });
+    }
+
+    // Confirm the session exists
+    const workoutLog = await WorkoutLog.findOne({ workoutLogId });
+    if (!workoutLog) {
+      return res.status(404).json({ message: 'Workout session not found' });
+    }
+
+    // Fetch all exercise logs attached to this session
+    const exerciseLogs = await ExerciseLog.find({ workoutLogId });
+
+    // Aggregate totals
+    const totalDurationSeconds = exerciseLogs.reduce((sum, el) => sum + (el.durationSeconds || 0), 0);
+    const totalCaloriesBurned = exerciseLogs.reduce((sum, el) => sum + (el.caloriesBurned || 0), 0);
+    const exercisesCompleted = exerciseLogs.filter(el => el.completed).length;
+    const exercisesSkipped = exerciseLogs.filter(el => !el.completed).length;
+
+    // Update the WorkoutLog with the summary
+    workoutLog.durationMinutes = Math.round(totalDurationSeconds / 60);
+    workoutLog.caloriesBurned = Math.round(totalCaloriesBurned);
+    workoutLog.completed = completed !== false;
+    workoutLog.userNote = userNote || '';
+    workoutLog.updatedAt = new Date();
+
+    await workoutLog.save();
+
+    res.status(200).json({
+      message: 'Workout session finished',
+      workoutLogId: workoutLog.workoutLogId,
+      totalDurationSeconds,
+      totalDurationMinutes: Math.round(totalDurationSeconds / 60),
+      totalCaloriesBurned: Math.round(totalCaloriesBurned),
+      exercisesCompleted,
+      exercisesSkipped,
+      completed: workoutLog.completed
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // POST /api/workouts/log — Log a completed workout
 router.post('/log', async (req, res) => {
   try {
