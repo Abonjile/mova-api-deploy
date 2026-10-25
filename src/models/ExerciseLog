@@ -1,0 +1,68 @@
+const mongoose = require('mongoose');
+
+// Logs a single exercise performed during a workout session.
+// One ExerciseLog exists per exercise the user attempts (completed or skipped).
+const ExerciseLogSchema = new mongoose.Schema({
+  exerciseLogId: {
+    type: String,
+    required: true,
+    unique: true,
+    default: () => `el_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`
+  },
+  // Links this log to the workout session it belongs to
+  workoutLogId: {
+    type: String,
+    ref: 'WorkoutLog',
+    required: true
+  },
+  exerciseId: {
+    type: String,
+    ref: 'Exercise',
+    required: true
+  },
+  orderNumber: {
+    type: Number,
+    default: 1
+  },
+  // Snapshot of the prescribed sets/reps at the time the exercise was attempted
+  sets: {
+    type: Number,
+    default: 3
+  },
+  repsPerSet: {
+    type: Number,
+    default: 12
+  },
+  // Snapshot of difficulty at log time (used to recalculate if needed)
+  difficulty: {
+    type: String,
+    enum: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'],
+    default: 'BEGINNER'
+  },
+  // Total time this exercise took (calculated from sets × work + rest)
+  durationSeconds: {
+    type: Number,
+    default: 0
+  },
+  // How many reps the user actually completed. 0 if skipped.
+  repsCompleted: {
+    type: Number,
+    default: 0
+  },
+  // Calories burned for this specific exercise
+  caloriesBurned: {
+    type: Number,
+    default: 0
+  },
+  // true = timer ran out or user tapped Done; false = user tapped Skip
+  completed: {
+    type: Boolean,
+    default: false
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+module.exports = mongoose.model('ExerciseLog', ExerciseLogSchema);
