@@ -17,10 +17,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import com.example.mova.ui.theme.MovaBlue
 import com.example.mova.ui.theme.MovaTeal
-import com.example.mova.ui.theme.MovaOffWhite
 import com.example.mova.ui.theme.MovaGray
 import com.example.mova.ui.theme.MovaLightGray
-import com.example.mova.ui.theme.MovaBlack
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -97,9 +95,9 @@ fun SettingsScreen(
 
                 // MOVA Logo with dots (branding)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(MovaBlack))
+                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onBackground))
                     Spacer(modifier = Modifier.width(2.dp))
-                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color.Red))
+                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.error))
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("MOVA", fontWeight = FontWeight.Bold, color = MovaBlue, fontSize = 18.sp)
                 }

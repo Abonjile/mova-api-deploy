@@ -69,7 +69,7 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MovaOffWhite)
+            .background(MaterialTheme.colorScheme.surface)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -87,7 +87,7 @@ fun RegisterScreen(
                 text = "Create an account",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = MovaBlack
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -138,7 +138,7 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "❌ ${uiState.error}",
-                    color = MovaError,
+                    color = MaterialTheme.colorScheme.error,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center
                 )
@@ -176,7 +176,7 @@ fun RegisterScreen(
                 text = "Or Continue with :",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = MovaBlack
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(20.dp))
 

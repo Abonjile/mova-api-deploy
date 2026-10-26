@@ -66,7 +66,7 @@ fun WorkoutDetailScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color(0xFF00008B)
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
             Spacer(modifier = Modifier.width(4.dp))
@@ -74,7 +74,7 @@ fun WorkoutDetailScreen(
                 text = workout?.name ?: "Workout",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF00008B)
+                color = MaterialTheme.colorScheme.primary
             )
         }
 
@@ -128,20 +128,20 @@ fun WorkoutDetailScreen(
                         text = w.name,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF00008B)
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = w.displayDescription,
                         fontSize = 14.sp,
-                        color = Color(0xFF757575)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "${w.difficulty} · ${w.durationMinutes} min · ${w.exercises.size} exercises",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF00008B)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
 
@@ -211,7 +211,7 @@ private fun ExerciseRow(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -241,13 +241,13 @@ private fun ExerciseRow(
                     text = exerciseName,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (targetMuscle.isNotEmpty()) {
                     Text(
                         text = targetMuscle,
                         fontSize = 12.sp,
-                        color = Color(0xFF757575)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -255,7 +255,7 @@ private fun ExerciseRow(
                 text = "$sets × $reps",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF00008B)
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }

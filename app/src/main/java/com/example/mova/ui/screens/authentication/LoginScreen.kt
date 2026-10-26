@@ -56,7 +56,7 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MovaOffWhite)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -80,7 +80,7 @@ fun LoginScreen(
             Text(
                 text = "Login to track your workouts and achieve your fitness goals",
                 fontSize = 14.sp,
-                color = MovaBlack,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 lineHeight = 20.sp
             )
@@ -112,7 +112,7 @@ fun LoginScreen(
                     text = "forgot password?",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MovaBlack,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.clickable {
                         Log.d("LoginScreen", "Forgot password tapped")
@@ -125,7 +125,7 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "❌ ${uiState.error}",
-                    color = MovaError,
+                    color = MaterialTheme.colorScheme.error,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center
                 )
@@ -163,7 +163,7 @@ fun LoginScreen(
                 text = "Or Continue with :",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = MovaBlack
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(20.dp))
 

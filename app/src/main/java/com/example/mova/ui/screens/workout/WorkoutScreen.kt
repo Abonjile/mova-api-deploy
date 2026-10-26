@@ -330,14 +330,14 @@ private fun WorkoutHeader(onAddClick: () -> Unit = {}) {
                 text = "Workout",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF00008B)
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = onAddClick) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Create Workout",
-                    tint = Color(0xFF00008B)
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -346,20 +346,20 @@ private fun WorkoutHeader(onAddClick: () -> Unit = {}) {
             Box(
                 modifier = Modifier
                     .size(10.dp)
-                    .background(Color(0xFF00008B), shape = CircleShape)
+                    .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Box(
                 modifier = Modifier
                     .size(10.dp)
-                    .background(Color(0xFFE53935), shape = CircleShape)
+                    .background(MaterialTheme.colorScheme.error, shape = CircleShape)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = "MOVA",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
     }
@@ -376,14 +376,14 @@ private fun SearchBar(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF0F0F0))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 12.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = "Search",
-            tint = Color(0xFF9E9E9E),
+            tint = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.width(10.dp))
@@ -394,7 +394,7 @@ private fun SearchBar(
                 Text(
                     text = "Search exercises and workouts",
                     fontSize = 14.sp,
-                    color = Color(0xFF9E9E9E)
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 )
             },
             modifier = Modifier.weight(1f),
@@ -406,7 +406,7 @@ private fun SearchBar(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
-                cursorColor = Color(0xFF00008B)
+                cursorColor = MaterialTheme.colorScheme.primary
             )
         )
         if (query.isNotEmpty()) {
@@ -414,7 +414,7 @@ private fun SearchBar(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Clear",
-                    tint = Color(0xFF9E9E9E),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -435,7 +435,7 @@ private fun SearchResultRow(
             .padding(horizontal = 16.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -449,7 +449,7 @@ private fun SearchResultRow(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        color = if (workout.isCustom) Color(0xFF00008B) else Color(0xFFE53935),
+                        color = MaterialTheme.colorScheme.primary,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -466,13 +466,13 @@ private fun SearchResultRow(
                     text = workout.name,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF00008B),
+                    color = MaterialTheme.colorScheme.primary,
                     maxLines = 1
                 )
                 Text(
                     text = "${workout.difficulty} · ${workout.durationMinutes} min",
                     fontSize = 12.sp,
-                    color = Color(0xFF757575)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 // Show matched exercises if the match came from an exercise name
                 if (matchedExercises.isNotEmpty()) {

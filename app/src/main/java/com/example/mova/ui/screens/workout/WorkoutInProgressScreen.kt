@@ -50,7 +50,7 @@ fun WorkoutInProgressScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Top bar
         Row(
@@ -63,7 +63,7 @@ fun WorkoutInProgressScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color(0xFF00008B)
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
             Spacer(modifier = Modifier.width(4.dp))
@@ -71,14 +71,14 @@ fun WorkoutInProgressScreen(
                 text = workout?.name ?: "Workout",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF00008B)
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = "${currentIndex + 1} / ${exercises.size}",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF00008B),
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(end = 16.dp)
             )
         }
@@ -97,7 +97,7 @@ fun WorkoutInProgressScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No exercises available", color = Color.Gray)
+                    Text("No exercises available", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             else -> {
@@ -124,7 +124,7 @@ fun WorkoutInProgressScreen(
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.White)
+                                .background(MaterialTheme.colorScheme.surface)
                                 .padding(8.dp)
                         )
                     }
@@ -135,7 +135,7 @@ fun WorkoutInProgressScreen(
                         text = current.name,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF00008B)
+                        color = MaterialTheme.colorScheme.primary
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -143,7 +143,7 @@ fun WorkoutInProgressScreen(
                     Text(
                         text = "${workoutExercise?.sets ?: 3} sets × ${workoutExercise?.reps ?: 12} reps",
                         fontSize = 16.sp,
-                        color = Color(0xFF757575)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -151,7 +151,7 @@ fun WorkoutInProgressScreen(
                     Text(
                         text = current.targetMuscleGroup,
                         fontSize = 14.sp,
-                        color = Color(0xFF757575)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -169,7 +169,7 @@ fun WorkoutInProgressScreen(
                             .fillMaxWidth()
                             .height(56.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFE53935)
+                            containerColor = MaterialTheme.colorScheme.error
                         ),
                         shape = RoundedCornerShape(14.dp)
                     ) {
@@ -177,7 +177,7 @@ fun WorkoutInProgressScreen(
                             text = if (currentIndex < exercises.size - 1) "NEXT EXERCISE" else "FINISH WORKOUT",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.background
                         )
                     }
 
