@@ -11,17 +11,19 @@ const {
   calculateExerciseCalories
 } = require('../utils/calorieCalculator');
 
-// GET /api/workouts?userId=xxx
+// GET /api/workouts?userId=xxx&isCustom=true|false — Get all workouts for a user
 router.get('/', async (req, res) => {
   try {
     const { userId, isCustom } = req.query;
-    if (!userId) return res.status(400).json({ message: 'userId is required' });
-    
+    if (!userId) {
+      return res.status(400).json({ message: 'userId is required' });
+    }
+
     const filter = { userId };
     if (isCustom !== undefined) {
       filter.isCustom = isCustom === 'true';
     }
-    
+
     const workouts = await Workout.find(filter);
     res.json(workouts);
   } catch (error) {
@@ -38,10 +40,17 @@ router.post('/', async (req, res) => {
     }
 
     const workout = new Workout({
-      userId, name, description, difficulty, durationMinutes, isCustom: true, iconName: iconName || 'fitness'
+      userId,
+      name,
+      description: description || '',
+      difficulty: difficulty || 'BEGINNER',
+      durationMinutes: durationMinutes || 20,
+      isCustom: true,
+      iconName: iconName || 'fitness'
     });
     await workout.save();
 
+    // Save junction entries if exercises were provided
     if (exercises && exercises.length > 0) {
       const junctionEntries = exercises.map((ex, index) => ({
         workoutId: workout.workoutId,
@@ -220,7 +229,9 @@ router.post('/log', async (req, res) => {
     const { userId, workoutId, durationMinutes, weightAtTime, userNote } = req.body;
 
     if (!userId || !workoutId || !durationMinutes || !weightAtTime) {
-      return res.status(400).json({ message: 'userId, workoutId, durationMinutes, and weightAtTime are required' });
+      return res.status(400).json({
+        message: 'userId, workoutId, durationMinutes, and weightAtTime are required'
+      });
     }
 
     const junctionEntries = await WorkoutExercise.find({ workoutId });
@@ -259,6 +270,19 @@ router.post('/log', async (req, res) => {
   }
 });
 
+// GET /api/workouts/logs?userId=xxx — Get all logs for a user
+router.get('/logs', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ message: 'userId is required' });
+
+    const logs = await WorkoutLog.find({ userId }).sort({ createdAt: -1 });
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // POST /api/workouts/:workoutId/exercises — Bulk add exercises to a workout
 router.post('/:workoutId/exercises', async (req, res) => {
   try {
@@ -289,12 +313,53 @@ router.post('/:workoutId/exercises', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const workout = await Workout.findOne({ workoutId: req.params.id });
-    if (!workout) return res.status(404).json({ message: 'Workout not found' });
+    if (!workout) {
+      return res.status(404).json({ message: 'Workout not found' });
+    }
 
     const exercises = await WorkoutExercise.find({ workoutId: workout.workoutId })
       .sort({ orderNumber: 1 });
 
     res.json({ ...workout.toObject(), exercises });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT /api/workouts/:id — Update workout metadata
+router.put('/:id', async (req, res) => {
+  try {
+    const workout = await Workout.findOne({ workoutId: req.params.id });
+    if (!workout) {
+      return res.status(404).json({ message: 'Workout not found' });
+    }
+
+    const { name, description, difficulty, durationMinutes } = req.body;
+    if (name) workout.name = name;
+    if (description) workout.description = description;
+    if (difficulty) workout.difficulty = difficulty;
+    if (durationMinutes) workout.durationMinutes = durationMinutes;
+    workout.updatedAt = new Date();
+
+    await workout.save();
+    res.json({ message: 'Workout updated successfully', workout });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE /api/workouts/:id — Delete workout and its junction entries
+router.delete('/:id', async (req, res) => {
+  try {
+    const workout = await Workout.findOneAndDelete({ workoutId: req.params.id });
+    if (!workout) {
+      return res.status(404).json({ message: 'Workout not found' });
+    }
+
+    // Clean up the junction entries too
+    await WorkoutExercise.deleteMany({ workoutId: workout.workoutId });
+
+    res.json({ message: 'Workout deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
