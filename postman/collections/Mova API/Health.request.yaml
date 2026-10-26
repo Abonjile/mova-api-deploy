@@ -1,0 +1,17 @@
+$kind: http-request
+name: Health Check
+method: GET
+url: '{{baseUrl}}/'
+order: 1000
+description: Returns a simple status message confirming the API is running.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("API is running message present", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("message");
+      });
