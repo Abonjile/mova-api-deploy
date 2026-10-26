@@ -362,5 +362,5 @@ const seedDB = async () => {
     console.error('❌ Error seeding database:', error);
     process.exit(1);
   }
-};
+}; 
 seedDB();
