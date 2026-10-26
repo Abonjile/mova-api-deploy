@@ -305,31 +305,37 @@ const seedDB = async () => {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ Connected to MongoDB');
 
-    // Clear existing data
     await Exercise.deleteMany({});
     await Workout.deleteMany({});
     await WorkoutExercise.deleteMany({});
     console.log('🗑️  Cleared existing data');
 
-    // Insert exercises
     const insertedExercises = await Exercise.insertMany(exercises);
     console.log(`✅ Inserted ${insertedExercises.length} exercises`);
 
-    // Build a name → exerciseId map
     const exerciseMap = {};
     insertedExercises.forEach(ex => {
       exerciseMap[ex.name] = ex.exerciseId;
     });
 
-    // Insert workouts and their junction entries
     let totalJunctionEntries = 0;
     for (const workoutData of workouts) {
+      // Calculate actual duration from this workout's exercises
+      let totalSeconds = 0;
+      workoutData.exercises.forEach(ex => {
+        const exerciseData = insertedExercises.find(e => e.name === ex.name);
+        const difficulty = exerciseData ? exerciseData.difficulty : 'BEGINNER';
+        const workSeconds = difficulty === 'ADVANCED' ? 20 : difficulty === 'INTERMEDIATE' ? 30 : 45;
+        totalSeconds += (ex.sets || 1) * workSeconds;
+      });
+      const calculatedDurationMinutes = Math.max(1, Math.ceil(totalSeconds / 60));
+
       const workout = new Workout({
         userId: 'system',
         name: workoutData.name,
         description: workoutData.description,
         difficulty: workoutData.difficulty,
-        durationMinutes: workoutData.durationMinutes,
+        durationMinutes: calculatedDurationMinutes,
         isCustom: false
       });
       await workout.save();
@@ -357,5 +363,4 @@ const seedDB = async () => {
     process.exit(1);
   }
 };
-
 seedDB();
