@@ -8,15 +8,15 @@ const WorkoutExercise = require('./src/models/WorkoutExercise');
 // 16 EXERCISES
 // ─────────────────────────────────────────────
 const exercises = [
-  { name: 'Push-ups', description: 'Standard push-up', targetMuscleGroup: 'Chest', difficulty: 'BEGINNER', metValue: 3.8, defaultSets: 3, defaultReps: 12, videoUrl: '' },
-  { name: 'Squats', description: 'Bodyweight squat', targetMuscleGroup: 'Legs', difficulty: 'BEGINNER', metValue: 5.0, defaultSets: 3, defaultReps: 15, videoUrl: '' },
-  { name: 'Plank', description: 'Hold plank position', targetMuscleGroup: 'Core', difficulty: 'INTERMEDIATE', metValue: 3.0, defaultSets: 3, defaultReps: 30, videoUrl: '' },
-  { name: 'Lunges', description: 'Forward lunge', targetMuscleGroup: 'Legs', difficulty: 'INTERMEDIATE', metValue: 4.0, defaultSets: 3, defaultReps: 10, videoUrl: '' },
-  { name: 'Burpees', description: 'Full body explosive movement', targetMuscleGroup: 'Full Body', difficulty: 'ADVANCED', metValue: 8.0, defaultSets: 3, defaultReps: 10, videoUrl: '' },
+  { name: 'Push-ups', description: 'Standard push-up', targetMuscleGroup: 'Chest', difficulty: 'BEGINNER', metValue: 4.2, defaultSets: 3, defaultReps: 12, videoUrl: '' },
+  { name: 'Squats', description: 'Bodyweight squat', targetMuscleGroup: 'Legs', difficulty: 'BEGINNER', metValue: 5.5, defaultSets: 3, defaultReps: 15, videoUrl: '' },
+  { name: 'Plank', description: 'Hold plank position', targetMuscleGroup: 'Core', difficulty: 'INTERMEDIATE', metValue: 3.8, defaultSets: 3, defaultReps: 30, videoUrl: '' },
+  { name: 'Lunges', description: 'Forward lunge', targetMuscleGroup: 'Legs', difficulty: 'INTERMEDIATE', metValue: 4.5, defaultSets: 3, defaultReps: 10, videoUrl: '' },
+  { name: 'Burpees', description: 'Full body explosive movement', targetMuscleGroup: 'Full Body', difficulty: 'ADVANCED', metValue: 10.0, defaultSets: 3, defaultReps: 10, videoUrl: '' },
   { name: 'Jumping Jacks', description: 'Cardio warm-up', targetMuscleGroup: 'Full Body', difficulty: 'BEGINNER', metValue: 7.0, defaultSets: 3, defaultReps: 20, videoUrl: '' },
   { name: 'Mountain Climbers', description: 'Dynamic core exercise', targetMuscleGroup: 'Core', difficulty: 'INTERMEDIATE', metValue: 8.0, defaultSets: 3, defaultReps: 20, videoUrl: '' },
-  { name: 'Glute Bridges', description: 'Hip raise for glutes', targetMuscleGroup: 'Glutes', difficulty: 'BEGINNER', metValue: 3.5, defaultSets: 3, defaultReps: 15, videoUrl: '' },
-  { name: 'Donkey Kicks', description: 'Quadruped hip extension', targetMuscleGroup: 'Glutes', difficulty: 'BEGINNER', metValue: 3.5, defaultSets: 3, defaultReps: 12, videoUrl: '' },
+  { name: 'Glute Bridges', description: 'Hip raise for glutes', targetMuscleGroup: 'Glutes', difficulty: 'BEGINNER', metValue: 4.0, defaultSets: 3, defaultReps: 15, videoUrl: '' },
+  { name: 'Donkey Kicks', description: 'Quadruped hip extension', targetMuscleGroup: 'Glutes', difficulty: 'BEGINNER', metValue: 4.5, defaultSets: 3, defaultReps: 12, videoUrl: '' },
   { name: 'Bicycle Crunches', description: 'Alternating ab crunch', targetMuscleGroup: 'Core', difficulty: 'INTERMEDIATE', metValue: 4.0, defaultSets: 3, defaultReps: 20, videoUrl: '' },
   { name: 'Russian Twists', description: 'Seated rotational core', targetMuscleGroup: 'Core', difficulty: 'INTERMEDIATE', metValue: 4.0, defaultSets: 3, defaultReps: 20, videoUrl: '' },
   { name: 'Tricep Dips', description: 'Chair tricep dip', targetMuscleGroup: 'Arms', difficulty: 'INTERMEDIATE', metValue: 5.0, defaultSets: 3, defaultReps: 12, videoUrl: '' },
@@ -35,152 +35,264 @@ const workouts = [
     name: 'Abs Workout',
     description: 'Core-focused routine',
     difficulty: 'BEGINNER',
-    durationMinutes: 20,
+    durationMinutes: 10,
     imageRes: 'abs_workout',
     exercises: [
-      { name: 'Bicycle Crunches', sets: 3, reps: 20, restSeconds: 30 },
-      { name: 'Russian Twists', sets: 3, reps: 20, restSeconds: 30 },
-      { name: 'Plank', sets: 3, reps: 45, restSeconds: 30 },
-      { name: 'Mountain Climbers', sets: 3, reps: 20, restSeconds: 30 }
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Bicycle Crunches', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Russian Twists', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Bicycle Crunches', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Russian Twists', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Bicycle Crunches', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Russian Twists', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 20, restSeconds: 10 }
     ]
   },
   {
     name: 'HIIT Workout',
     description: 'High intensity interval training',
     difficulty: 'ADVANCED',
-    durationMinutes: 25,
+    durationMinutes: 8,
     imageRes: 'hiit_workout',
     exercises: [
-      { name: 'Burpees', sets: 4, reps: 10, restSeconds: 20 },
-      { name: 'Jumping Jacks', sets: 4, reps: 30, restSeconds: 20 },
-      { name: 'High Knees', sets: 4, reps: 40, restSeconds: 20 },
-      { name: 'Mountain Climbers', sets: 4, reps: 25, restSeconds: 20 }
+      { name: 'Burpees', sets: 1, reps: 10, restSeconds: 10 },
+      { name: 'Jumping Jacks', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'High Knees', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Burpees', sets: 1, reps: 10, restSeconds: 10 },
+      { name: 'Jumping Jacks', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'High Knees', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Burpees', sets: 1, reps: 10, restSeconds: 10 },
+      { name: 'Jumping Jacks', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'High Knees', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Burpees', sets: 1, reps: 10, restSeconds: 10 },
+      { name: 'Jumping Jacks', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'High Knees', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 25, restSeconds: 10 }
     ]
   },
   {
     name: 'Arm Strength',
     description: 'Upper body arm builder',
     difficulty: 'INTERMEDIATE',
-    durationMinutes: 30,
+    durationMinutes: 8,
     imageRes: 'armstrength_workout',
     exercises: [
-      { name: 'Push-ups', sets: 4, reps: 12, restSeconds: 45 },
-      { name: 'Tricep Dips', sets: 3, reps: 12, restSeconds: 45 },
-      { name: 'Bicep Curls', sets: 3, reps: 12, restSeconds: 45 },
-      { name: 'Plank', sets: 3, reps: 45, restSeconds: 45 }
+      { name: 'Push-ups', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Tricep Dips', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Bicep Curls', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Push-ups', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Tricep Dips', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Bicep Curls', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Push-ups', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Tricep Dips', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Bicep Curls', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 }
     ]
   },
   {
     name: 'Back Workout',
     description: 'Back and posture focus',
     difficulty: 'INTERMEDIATE',
-    durationMinutes: 30,
+    durationMinutes: 8,
     imageRes: 'back_workout',
     exercises: [
-      { name: 'Plank', sets: 3, reps: 45, restSeconds: 45 },
-      { name: 'Glute Bridges', sets: 3, reps: 15, restSeconds: 30 },
-      { name: 'Mountain Climbers', sets: 3, reps: 20, restSeconds: 30 },
-      { name: 'Shoulder Taps', sets: 3, reps: 20, restSeconds: 30 }
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Shoulder Taps', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Shoulder Taps', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Shoulder Taps', sets: 1, reps: 20, restSeconds: 10 }
     ]
   },
   {
     name: 'Back Builder',
     description: 'Build a stronger back',
     difficulty: 'ADVANCED',
-    durationMinutes: 35,
+    durationMinutes: 8,
     imageRes: 'backbuilder_workout',
     exercises: [
-      { name: 'Push-ups', sets: 4, reps: 15, restSeconds: 45 },
-      { name: 'Plank', sets: 4, reps: 60, restSeconds: 45 },
-      { name: 'Shoulder Taps', sets: 4, reps: 25, restSeconds: 45 },
-      { name: 'Glute Bridges', sets: 4, reps: 20, restSeconds: 45 }
+      { name: 'Push-ups', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Shoulder Taps', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Push-ups', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Shoulder Taps', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Push-ups', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Shoulder Taps', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Push-ups', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Shoulder Taps', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 20, restSeconds: 10 }
     ]
   },
   {
     name: 'Cardio Blast',
     description: 'Get the heart pumping',
     difficulty: 'BEGINNER',
-    durationMinutes: 20,
+    durationMinutes: 8,
     imageRes: 'cardio_workout',
     exercises: [
-      { name: 'Jumping Jacks', sets: 3, reps: 30, restSeconds: 20 },
-      { name: 'High Knees', sets: 3, reps: 40, restSeconds: 20 },
-      { name: 'Mountain Climbers', sets: 3, reps: 20, restSeconds: 20 }
+      { name: 'Jumping Jacks', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'High Knees', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Jumping Jacks', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'High Knees', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Jumping Jacks', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'High Knees', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Jumping Jacks', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'High Knees', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 20, restSeconds: 10 }
     ]
   },
   {
     name: 'Chest Workout',
     description: 'Chest and push focus',
     difficulty: 'INTERMEDIATE',
-    durationMinutes: 25,
+    durationMinutes: 8,
     imageRes: 'chest_workout',
     exercises: [
-      { name: 'Push-ups', sets: 4, reps: 12, restSeconds: 45 },
-      { name: 'Shoulder Taps', sets: 3, reps: 20, restSeconds: 30 },
-      { name: 'Plank', sets: 3, reps: 45, restSeconds: 30 }
+      { name: 'Push-ups', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Shoulder Taps', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Push-ups', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Shoulder Taps', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Push-ups', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Shoulder Taps', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Push-ups', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Shoulder Taps', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 }
     ]
   },
   {
     name: 'Core Crush',
     description: 'Destroy your core',
     difficulty: 'ADVANCED',
-    durationMinutes: 30,
+    durationMinutes: 8,
     imageRes: 'corecrush_workout',
     exercises: [
-      { name: 'Bicycle Crunches', sets: 4, reps: 25, restSeconds: 30 },
-      { name: 'Russian Twists', sets: 4, reps: 25, restSeconds: 30 },
-      { name: 'Plank', sets: 4, reps: 60, restSeconds: 30 },
-      { name: 'Mountain Climbers', sets: 4, reps: 25, restSeconds: 30 }
+      { name: 'Bicycle Crunches', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Russian Twists', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Bicycle Crunches', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Russian Twists', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Bicycle Crunches', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Russian Twists', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Bicycle Crunches', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Russian Twists', sets: 1, reps: 25, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 40, restSeconds: 10 },
+      { name: 'Mountain Climbers', sets: 1, reps: 25, restSeconds: 10 }
     ]
   },
   {
     name: 'Full Body',
     description: 'Complete body workout',
     difficulty: 'INTERMEDIATE',
-    durationMinutes: 35,
+    durationMinutes: 10,
     imageRes: 'fullbody_workout',
     exercises: [
-      { name: 'Push-ups', sets: 3, reps: 12, restSeconds: 30 },
-      { name: 'Squats', sets: 3, reps: 15, restSeconds: 30 },
-      { name: 'Plank', sets: 3, reps: 45, restSeconds: 30 },
-      { name: 'Lunges', sets: 3, reps: 12, restSeconds: 30 },
-      { name: 'Burpees', sets: 3, reps: 10, restSeconds: 30 }
+      { name: 'Push-ups', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Squats', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Lunges', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Burpees', sets: 1, reps: 10, restSeconds: 10 },
+      { name: 'Squats', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Push-ups', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Lunges', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Burpees', sets: 1, reps: 10, restSeconds: 10 },
+      { name: 'Squats', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Plank', sets: 1, reps: 30, restSeconds: 10 }
     ]
   },
   {
     name: 'Glute Power',
     description: 'Strong glutes, strong legs',
     difficulty: 'INTERMEDIATE',
-    durationMinutes: 25,
+    durationMinutes: 8,
     imageRes: 'glutepower_workout',
     exercises: [
-      { name: 'Glute Bridges', sets: 4, reps: 20, restSeconds: 30 },
-      { name: 'Donkey Kicks', sets: 4, reps: 15, restSeconds: 30 },
-      { name: 'Squats', sets: 3, reps: 15, restSeconds: 30 }
+      { name: 'Glute Bridges', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Donkey Kicks', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Squats', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Donkey Kicks', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Squats', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Donkey Kicks', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Squats', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 20, restSeconds: 10 },
+      { name: 'Donkey Kicks', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Squats', sets: 1, reps: 15, restSeconds: 10 }
     ]
   },
   {
     name: 'Leg Day',
     description: 'Legs and lower body',
     difficulty: 'INTERMEDIATE',
-    durationMinutes: 30,
+    durationMinutes: 8,
     imageRes: 'legday_workout',
     exercises: [
-      { name: 'Squats', sets: 4, reps: 15, restSeconds: 45 },
-      { name: 'Lunges', sets: 4, reps: 12, restSeconds: 45 },
-      { name: 'Wall Sit', sets: 3, reps: 60, restSeconds: 45 }
+      { name: 'Squats', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Lunges', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Wall Sit', sets: 1, reps: 45, restSeconds: 10 },
+      { name: 'Squats', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Lunges', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Wall Sit', sets: 1, reps: 45, restSeconds: 10 },
+      { name: 'Squats', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Lunges', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Wall Sit', sets: 1, reps: 45, restSeconds: 10 },
+      { name: 'Squats', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Lunges', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Wall Sit', sets: 1, reps: 45, restSeconds: 10 }
     ]
   },
   {
     name: 'Low Impact',
     description: 'Joint-friendly movement',
     difficulty: 'BEGINNER',
-    durationMinutes: 20,
+    durationMinutes: 8,
     imageRes: 'lowimpact_workout',
     exercises: [
-      { name: 'Glute Bridges', sets: 3, reps: 15, restSeconds: 30 },
-      { name: 'Donkey Kicks', sets: 3, reps: 12, restSeconds: 30 },
-      { name: 'Wall Sit', sets: 3, reps: 30, restSeconds: 30 }
+      { name: 'Glute Bridges', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Donkey Kicks', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Wall Sit', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Donkey Kicks', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Wall Sit', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Donkey Kicks', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Wall Sit', sets: 1, reps: 30, restSeconds: 10 },
+      { name: 'Glute Bridges', sets: 1, reps: 15, restSeconds: 10 },
+      { name: 'Donkey Kicks', sets: 1, reps: 12, restSeconds: 10 },
+      { name: 'Wall Sit', sets: 1, reps: 30, restSeconds: 10 }
     ]
   }
 ];
@@ -193,31 +305,37 @@ const seedDB = async () => {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ Connected to MongoDB');
 
-    // Clear existing data
     await Exercise.deleteMany({});
     await Workout.deleteMany({});
     await WorkoutExercise.deleteMany({});
     console.log('🗑️  Cleared existing data');
 
-    // Insert exercises
     const insertedExercises = await Exercise.insertMany(exercises);
     console.log(`✅ Inserted ${insertedExercises.length} exercises`);
 
-    // Build a name → exerciseId map
     const exerciseMap = {};
     insertedExercises.forEach(ex => {
       exerciseMap[ex.name] = ex.exerciseId;
     });
 
-    // Insert workouts and their junction entries
     let totalJunctionEntries = 0;
     for (const workoutData of workouts) {
+      // Calculate actual duration from this workout's exercises
+      let totalSeconds = 0;
+      workoutData.exercises.forEach(ex => {
+        const exerciseData = insertedExercises.find(e => e.name === ex.name);
+        const difficulty = exerciseData ? exerciseData.difficulty : 'BEGINNER';
+        const workSeconds = difficulty === 'ADVANCED' ? 20 : difficulty === 'INTERMEDIATE' ? 30 : 45;
+        totalSeconds += (ex.sets || 1) * workSeconds;
+      });
+      const calculatedDurationMinutes = Math.max(1, Math.ceil(totalSeconds / 60));
+
       const workout = new Workout({
         userId: 'system',
         name: workoutData.name,
         description: workoutData.description,
         difficulty: workoutData.difficulty,
-        durationMinutes: workoutData.durationMinutes,
+        durationMinutes: calculatedDurationMinutes,
         isCustom: false
       });
       await workout.save();
@@ -244,6 +362,5 @@ const seedDB = async () => {
     console.error('❌ Error seeding database:', error);
     process.exit(1);
   }
-};
-
+}; 
 seedDB();

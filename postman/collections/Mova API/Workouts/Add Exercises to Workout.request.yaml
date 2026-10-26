@@ -1,0 +1,44 @@
+$kind: http-request
+name: Add Exercises to Workout
+method: POST
+url: '{{baseUrl}}/api/workouts/:workoutId/exercises'
+order: 5000
+description: |-
+  Bulk-add exercises to an existing workout. The request body must be a non-empty
+  array of exercise objects. Each entry creates a WorkoutExercise junction record.
+pathVariables:
+  - key: workoutId
+    value: '{{workoutId}}'
+    description: The unique identifier of the workout
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    [
+      {
+        "exerciseId": "ex-001",
+        "orderNumber": 1,
+        "sets": 3,
+        "reps": 12,
+        "restSeconds": 60
+      },
+      {
+        "exerciseId": "ex-002",
+        "orderNumber": 2,
+        "sets": 4,
+        "reps": 10,
+        "restSeconds": 45
+      }
+    ]
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 201", function () {
+        pm.response.to.have.status(201);
+      });
+      pm.test("Response is an array", function () {
+        pm.expect(pm.response.json()).to.be.an("array");
+      });
