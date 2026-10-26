@@ -6,6 +6,7 @@ import com.example.mova.data.models.WorkoutExercise
 import com.example.mova.data.remote.api.RetrofitClient
 import com.example.mova.data.remote.api.WorkoutLogRequest
 import com.example.mova.data.remote.api.WorkoutLogResponse
+import com.example.mova.data.models.WorkoutLog
 
 class WorkoutRepository {
 
@@ -45,5 +46,9 @@ class WorkoutRepository {
     // Fetch only custom workouts for a user
     suspend fun getCustomWorkouts(userId: String): List<Workout> {
         return api.getWorkoutsByUser(userId, isCustom = true)
+    }
+
+    suspend fun getWorkoutLogs(userId: String): List<WorkoutLog> {
+        return api.getWorkoutLogs(userId)
     }
 }
