@@ -5,11 +5,14 @@ import androidx.compose.material3.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 
 @Composable
 fun MovaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    largeText: Boolean = false,
+    highContrast: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val view = LocalView.current
@@ -18,8 +21,42 @@ fun MovaTheme(
         WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
     }
 
-    val colorScheme = if (darkTheme) {
-        darkColorScheme(
+    val colorScheme = when {
+        // Extreme high contrast mode (it's pure black/white, no subtle greys)
+        highContrast && darkTheme -> darkColorScheme(
+            primary = Color.Yellow,  // High visibility accent
+            onPrimary = Color.Black,
+            secondary = Color.Cyan,
+            onSecondary = Color.Black,
+            background = Color.Black,
+            onBackground = Color.White,
+            surface = Color.Black,
+            onSurface = Color.White,
+            surfaceVariant = Color.Black,
+            onSurfaceVariant = Color.White,
+            error = Color(0xFFFF6B6B),
+            onError = Color.Black,
+            outline = Color.White
+        )
+
+        highContrast && !darkTheme -> lightColorScheme(
+            primary = Color.Blue,  // High visibility accent
+            onPrimary = Color.White,
+            secondary = Color.Magenta,
+            onSecondary = Color.White,
+            background = Color.White,
+            onBackground = Color.Black,
+            surface = Color.White,
+            onSurface = Color.Black,
+            surfaceVariant = Color.White,
+            onSurfaceVariant = Color.Black,
+            error = Color(0xFFB00020),
+            onError = Color.White,
+            outline = Color.Black
+        )
+
+        // Standard dark mode
+        darkTheme -> darkColorScheme(
             primary = PrimaryLight,
             onPrimary = TextDark,
             secondary = SecondaryLight,
@@ -32,8 +69,9 @@ fun MovaTheme(
             onSurfaceVariant = Color(0xFFB0B0C0),
             error = AccentRed
         )
-    } else {
-        lightColorScheme(
+
+        // Standard light mode
+        else -> lightColorScheme(
             primary = Primary,
             onPrimary = TextLight,
             secondary = Secondary,
@@ -45,9 +83,20 @@ fun MovaTheme(
         )
     }
 
+    // Scale typography if largeText is true
+    val finalTypography = if (largeText) {
+        Typography(
+            bodyLarge = Typography().bodyLarge.copy(fontSize = 20.sp, lineHeight = 28.sp),
+            bodyMedium = Typography().bodyMedium.copy(fontSize = 18.sp, lineHeight = 24.sp),
+            titleLarge = Typography().titleLarge.copy(fontSize = 24.sp),
+        )
+    } else {
+        Typography // default
+    }
+
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = finalTypography,
         content = content
     )
 }

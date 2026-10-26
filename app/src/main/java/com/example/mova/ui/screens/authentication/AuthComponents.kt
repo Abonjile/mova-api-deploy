@@ -144,7 +144,7 @@ fun SocialLoginRow(
 fun SocialButton(icon: Painter, onClick: () -> Unit, contentDescription: String) {
     Surface(
         shape = RoundedCornerShape(8.dp),
-        color = MovaLightGray,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         modifier = Modifier
             .size(60.dp, 40.dp)
             .clickable(onClick = onClick)
@@ -153,7 +153,7 @@ fun SocialButton(icon: Painter, onClick: () -> Unit, contentDescription: String)
             Icon(
                 painter = icon,
                 contentDescription = contentDescription,
-                tint = MaterialTheme.colorScheme.onBackground,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(24.dp)
             )
         }
