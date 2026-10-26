@@ -127,7 +127,8 @@ fun WorkoutInProgressScreen(
             if (phase == Phase.SETUP) {
                 // Move from setup to exercising
                 phase = Phase.EXERCISING
-                secondsRemaining = getExerciseDuration(exercises[currentIndex])
+                val currentWorkoutExercise = workout?.exercises?.firstOrNull { it.exerciseId == exercises[currentIndex].exerciseId }
+                secondsRemaining = getExerciseDuration(exercises[currentIndex], currentWorkoutExercise?.sets ?: 1)
             } else if (phase == Phase.EXERCISING) {
                 // Exercise complete
                 val updatedCompleted = exercisesCompleted + 1
@@ -345,7 +346,7 @@ fun WorkoutInProgressScreen(
                                     )
                                 } else {
                                     Spacer(Modifier.height(10.dp))
-                                    val total = getExerciseDuration(current).toFloat()
+                                    val total = getExerciseDuration(current, workoutExercise?.sets ?: 1).toFloat()
                                     val progressValue = if (total > 0) ((total - secondsRemaining) / total).coerceIn(0f, 1f) else 0f
                                     LinearProgressIndicator(
                                         progress = progressValue,
@@ -457,14 +458,14 @@ fun WorkoutInProgressScreen(
 
 // Returns the total active seconds for an exercise based on its difficulty.
 // Beginner = 45s per set, Intermediate = 30s, Advanced = 20s.
-private fun getExerciseDuration(exercise: Exercise): Int {
+private fun getExerciseDuration(exercise: Exercise, sets: Int): Int {
     val workSeconds = when (exercise.difficulty.uppercase()) {
         "BEGINNER" -> 45
         "INTERMEDIATE" -> 30
         "ADVANCED" -> 20
         else -> 45
     }
-    return 3 * workSeconds // default 3 sets
+    return sets * workSeconds
 }
 
 // Formats seconds as MM:SS
