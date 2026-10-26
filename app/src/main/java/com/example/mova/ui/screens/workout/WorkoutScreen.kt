@@ -34,6 +34,7 @@ import com.example.mova.data.local.RecentWorkoutsStore
 import com.example.mova.data.models.Exercise
 import com.example.mova.data.models.Workout
 import com.example.mova.data.repository.WorkoutRepository
+import androidx.hilt.navigation.compose.hiltViewModel
 
 // WorkoutScreen is the main dashboard for the workout feature.
 // Loads system workouts, user-created workouts, and recent workouts.
@@ -44,7 +45,8 @@ fun WorkoutScreen(
     modifier: Modifier = Modifier,
     onWorkoutClick: (String) -> Unit = {},
     onAddClick: () -> Unit = {},
-    repository: WorkoutRepository = WorkoutRepository()
+    repository: WorkoutRepository = WorkoutRepository(),
+    viewModel: WorkoutViewModel = hiltViewModel()
 ) {
     // ── Data state ──
     var systemWorkouts by remember { mutableStateOf<List<Workout>>(emptyList()) }
@@ -64,13 +66,17 @@ fun WorkoutScreen(
     val context = LocalContext.current
     val recentStore = remember { RecentWorkoutsStore(context) }
 
+    // Real user id from SessionManager, via the ViewModel
+    val userId by viewModel.userId.collectAsState()
+
     // Load everything on first composition
-    LaunchedEffect(Unit) {
+    LaunchedEffect(userId) {
+        val uid = userId ?: "test_user_123"
         try {
             isLoading = true
             systemWorkouts = repository.getSystemWorkouts()
-            userWorkouts = repository.getUserWorkouts("test_user_123")
-            customWorkouts = repository.getCustomWorkouts("test_user_123")
+            userWorkouts = repository.getUserWorkouts(uid)
+            customWorkouts = repository.getCustomWorkouts(uid)
             allExercises = repository.getAllExercises()
 
             // Resolve recent IDs into actual workout objects

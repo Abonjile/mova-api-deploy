@@ -30,7 +30,11 @@ import com.example.mova.data.models.Workout
 import com.example.mova.data.models.WorkoutExercise
 import com.example.mova.data.remote.api.WorkoutLogRequest
 import com.example.mova.data.repository.WorkoutRepository
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import com.example.mova.data.local.MovaDatabase
+import com.example.mova.data.repository.UserRepository
+import androidx.compose.ui.platform.LocalContext
 
 // One exercise selected in the builder
 data class SelectedExercise(
@@ -55,12 +59,15 @@ private const val SECONDS_PER_REP = 3.0
 
 @Composable
 fun WorkoutBuilderLoggerScreen(
-    userId: String = "test_user_123",
     onBack: () -> Unit = {},
-    repository: WorkoutRepository = WorkoutRepository()
+    repository: WorkoutRepository = WorkoutRepository(),
+    viewModel: WorkoutViewModel = hiltViewModel()
 ) {
+    val userIdState by viewModel.userId.collectAsState()
+    val userId = userIdState ?: "test_user_123"   // fallback
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     // Form state
     var workoutName by remember { mutableStateOf("") }
@@ -71,24 +78,38 @@ fun WorkoutBuilderLoggerScreen(
     var selectedExercises by remember { mutableStateOf<List<SelectedExercise>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var isSaving by remember { mutableStateOf(false) }
+    // User weight loaded from profile — falls back to 70kg if unavailable
+    var userWeight by remember { mutableStateOf(70.0) }
 
     // Load exercises from backend
     LaunchedEffect(Unit) {
         try {
+            // Load exercises for the checklist
             allExercises = repository.getAllExercises()
+
+            // Load the user's real weight for calorie calculation
+            val userRepo = UserRepository(
+                androidx.room.Room.databaseBuilder(
+                    context.applicationContext,
+                    MovaDatabase::class.java,
+                    "mova_database"
+                ).build()
+            )
+            val user = userRepo.getUser(userId)
+            userWeight = user?.weight?.toDouble()?.takeIf { it > 0 } ?: 70.0
         } catch (e: Exception) {
-            // silent
+            // Keep the 70kg fallback
         } finally {
             isLoading = false
         }
     }
 
     // Live calorie calc
-    val totalCalories = remember(selectedExercises) {
+    val totalCalories = remember(selectedExercises, userWeight) {
         selectedExercises.sumOf { sel ->
             val mins = (sel.reps * SECONDS_PER_REP * sel.sets) / 60.0
             val hours = mins / 60.0
-            sel.exercise.metValue * DEFAULT_USER_WEIGHT_KG * hours
+            sel.exercise.metValue * userWeight * hours
         }.toInt()
     }
 
@@ -283,7 +304,7 @@ fun WorkoutBuilderLoggerScreen(
                                     userId = userId,
                                     workoutId = created.workoutId,
                                     durationMinutes = created.durationMinutes,
-                                    weightAtTime = DEFAULT_USER_WEIGHT_KG,
+                                    weightAtTime = userWeight,
                                     userNote = description
                                 )
                                 repository.logWorkout(logReq)
