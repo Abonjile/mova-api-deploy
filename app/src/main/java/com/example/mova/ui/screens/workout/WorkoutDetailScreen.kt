@@ -14,13 +14,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
-import com.example.mova.data.models.Workout
 import com.example.mova.data.models.Exercise
+import com.example.mova.data.models.Workout
 import com.example.mova.data.repository.WorkoutRepository
 
 @Composable
@@ -103,6 +104,8 @@ fun WorkoutDetailScreen(
             }
             workout != null -> {
                 val w = workout!!
+                // Check if the exercises are actually loaded
+                val hasExercises = w.exercises.isNotEmpty()
 
                 // Big workout image (~1/3 of screen)
                 Box(
@@ -164,19 +167,52 @@ fun WorkoutDetailScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                w.exercises.sortedBy { it.orderNumber }.forEachIndexed { index, we ->
-                    val ex = exerciseMap[we.exerciseId]
-                    val exerciseName = ex?.name ?: we.exerciseId.removePrefix("ex_").replace("_", " ").split(" ")
-                        .joinToString(" ") { word -> word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() } }
-                        .ifEmpty { "Exercise ${index + 1}" }
-                    ExerciseRow(
-                        index = index + 1,
-                        exerciseName = exerciseName,
-                        sets = we.sets,
-                        reps = we.reps,
-                        targetMuscle = ex?.targetMuscleGroup ?: ""
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                if (!hasExercises) {
+                    // THE CUTE WARNING MESSAGE
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)), // Soft orange background
+                        shape = RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFB74D))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "📡 Connection Required",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = Color(0xFFE65100)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "It looks like you're offline! Please check your internet connection to load this workout's exercises.\n\nTip: Workouts you've viewed recently are saved automatically. Check the 'Jump Back In' section on the dashboard to start those offline!",
+                                fontSize = 13.sp,
+                                color = Color.Black,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 18.sp
+                            )
+                        }
+                    }
+                } else {
+                    // Only show the list if it actually loaded
+                    w.exercises.sortedBy { it.orderNumber }.forEachIndexed { index, we ->
+                        val ex = exerciseMap[we.exerciseId]
+                        val exerciseName = ex?.name ?: we.exerciseId.removePrefix("ex_").replace("_", " ").split(" ")
+                            .joinToString(" ") { word -> word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() } }
+                            .ifEmpty { "Exercise ${index + 1}" }
+                        ExerciseRow(
+                            index = index + 1,
+                            exerciseName = exerciseName,
+                            sets = we.sets,
+                            reps = we.reps,
+                            targetMuscle = ex?.targetMuscleGroup ?: ""
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -184,17 +220,19 @@ fun WorkoutDetailScreen(
                 // START button
                 Button(
                     onClick = { onStartWorkout(w.workoutId) },
+                    enabled = hasExercises, // Disables the button if offline and not cached
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
                         .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFE53935)
+                        containerColor = Color(0xFFE53935),
+                        disabledContainerColor = Color.Gray // Greys out the button
                     ),
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     Text(
-                        text = "START WORKOUT",
+                        text = if (hasExercises) "START WORKOUT" else "UNAVAILABLE OFFLINE",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
