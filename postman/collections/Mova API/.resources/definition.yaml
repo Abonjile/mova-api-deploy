@@ -1,0 +1,9 @@
+$kind: collection
+name: Mova API
+description: |-
+  REST API for the Mova fitness application.
+  Base URL is controlled by the {{baseUrl}} collection variable (default: http://localhost:3000).
+variables:
+  - key: baseUrl
+    value: 'http://localhost:3000'
+    description: Base URL of the Mova API server

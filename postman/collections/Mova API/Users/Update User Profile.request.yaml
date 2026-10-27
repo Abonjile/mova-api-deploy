@@ -1,0 +1,38 @@
+$kind: http-request
+name: Update User Profile
+method: PUT
+url: '{{baseUrl}}/api/users/:userId'
+order: 2000
+description: |-
+  Update one or more profile fields for a user. All body fields are optional.
+  Upserts the user document if it does not exist.
+pathVariables:
+  - key: userId
+    value: '{{userId}}'
+    description: The unique identifier of the user
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "Jane Doe",
+      "weight": 65,
+      "height": 170,
+      "age": 28,
+      "gender": "female",
+      "fitnessLevel": "intermediate",
+      "fitnessGoal": "lose_weight"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("Response contains userId", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("userId");
+      });

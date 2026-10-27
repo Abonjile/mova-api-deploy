@@ -1,0 +1,4 @@
+$kind: collection
+name: Exercises
+description: Endpoints for browsing and creating exercises (admin/seed use).
+order: 5000

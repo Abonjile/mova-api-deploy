@@ -1,0 +1,33 @@
+$kind: http-request
+name: Complete Challenge
+method: PUT
+url: '{{baseUrl}}/api/challenges/:id/complete'
+order: 5000
+description: |-
+  Mark a challenge as completed for a user. Awards a streak increment and a badge.
+  Returns 400 if already completed. `userId` is required in the body.
+pathVariables:
+  - key: id
+    value: '{{challengeId}}'
+    description: The unique identifier of the challenge
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "userId": "{{userId}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("Response contains streakCount and badgeEarned", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("streakCount");
+        pm.expect(json).to.have.property("badgeEarned");
+      });
