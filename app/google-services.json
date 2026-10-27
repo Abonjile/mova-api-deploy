@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "919226330565",
+    "project_id": "com-example-mova-cfeeb",
+    "storage_bucket": "com-example-mova-cfeeb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:919226330565:android:f4acdbc3b6b976ff152fac",
+        "android_client_info": {
+          "package_name": "com.example.mova"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjXiPzSiCsWSGnh0U8JL-fr7VAStEoYvI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
