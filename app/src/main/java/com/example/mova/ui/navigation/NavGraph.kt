@@ -48,6 +48,9 @@ fun MovaNavGraph(
     modifier: Modifier = Modifier,
     startDestination: String = "splash"
 ) {
+    // Active session user ID for real data fetching from MongoDB
+    val currentUserId = "user_default_01"
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -151,13 +154,13 @@ fun MovaNavGraph(
             )
         }
 
-        // ===== Other bottom-nav screens =====
+        // ===== Other bottom-nav screens (Passing real userId) =====
         composable(Screen.Challenges.route) {
-            ChallengesScreen()
+            ChallengesScreen(userId = currentUserId)
         }
 
         composable(Screen.Rewards.route) {
-            RewardsScreen()
+            RewardsScreen(userId = currentUserId)
         }
 
         composable(Screen.Profile.route) {
@@ -185,7 +188,7 @@ fun MovaNavGraph(
         }
 
         composable(Screen.Analytics.route) {
-            AnalyticsScreen()
+            AnalyticsScreen(userId = currentUserId)
         }
     }
 }

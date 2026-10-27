@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">MOVA</string>
+    <string name="rewards_title">Mputliso</string>
+    <string name="day_streak_format">Matsatsi a %d a latellana!</string>
+    <string name="consistency_level_format">Boemo ba botsitso: %d%% ka beke</string>
+    <string name="active_challenge_rewards">Mputliso oa Mathata a Sebetsang</string>
+    <string name="no_claimable_rewards">Ha ho meputiso e fumanehang hona joale.</string>
+    <string name="claimed">E nkuoe</string>
+    <string name="claim">Nka</string>
+    <string name="milestone_badges">Liantle tsa Mehla</string>
+    <string name="no_milestone_badges">Ha ho liantle tsa mehla tse ngolisitsoeng.</string>
+</resources>

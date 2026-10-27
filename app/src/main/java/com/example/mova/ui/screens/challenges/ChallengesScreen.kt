@@ -1,13 +1,21 @@
+/**
+ * =====================================================================================
+ * COMPOSABLE: ChallengesScreen
+ * =====================================================================================
+ * Shows the user's active programmes with progress, and lets them record a check-in.
+ * The target muscle group card is still hardcoded; it should come from data later.
+ * =====================================================================================
+ */
 package com.example.mova.ui.screens.challenges
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -15,214 +23,205 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mova.data.remote.model.ChallengeDto
 
-/**
- * Composable function representing the Challenges screen.
- * Allows users to view and manage active fitness programs, track progress, and view target muscle groups.
-njd*/
 @Composable
-fun ChallengesScreen() {
-    // Outer vertical scroll container for the entire screen content
-    Column(
-        modifier = Modifier // Modifiers for layout styling
-            .fillMaxSize() // Fill the entire available screen space
-            .background(MaterialTheme.colorScheme.background) // Light background color for the screen
-            .verticalScroll(rememberScrollState()) // Enable scrolling for overflow content
-            .padding(16.dp) // Apply padding around all screen contents
+fun ChallengesScreen(
+    userId: String,
+    viewModel: ChallengesViewModel = viewModel()
+) {
+    // Each collectAsState turns a StateFlow into Compose state. When the value changes,
+    // the UI rebuilds with the new value.
+    val challenges by viewModel.challenges.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
+    // Runs once per userId. Without this, the list stays empty when the screen first opens.
+    LaunchedEffect(userId) {
+        viewModel.fetchUserChallenges(userId)
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F9FA))
+            .padding(16.dp)
     ) {
-        // Row container for the top app bar elements (Title and Brand Logo)
-        Row(
-            modifier = Modifier.fillMaxWidth(), // Span the full width of the screen
-            horizontalArrangement = Arrangement.SpaceBetween, // Space title and logo apart
-            verticalAlignment = Alignment.CenterVertically // Center items vertically in the row
-        ) {
-            // Text composable displaying the screen title "Challenges"
-            Text(
-                text = "Challenges", // String value for the header
-                fontSize = 24.sp, // Large font size for prominent heading
-                fontWeight = FontWeight.Bold, // Bold text weight
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            // Row container for the MOVA brand indicator dots and logo text
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Black circle dot for branding design
-                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.background, CircleShape))
-                // Horizontal spacing between the dots
-                Spacer(modifier = Modifier.width(4.dp))
-                // Red circle dot for branding design
-                Box(modifier = Modifier.size(8.dp).background(Color.Red, CircleShape))
-                // Horizontal spacing before the brand name text
-                Spacer(modifier = Modifier.width(6.dp))
-                // Brand name text "MOVA"
-                Text(text = "MOVA", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1A237E))
-            }
-        }
-
-        // Vertical spacing below the top app bar
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Section header text for Target Muscle Groups
-        Text(
-            text = "Target Muscle Groups", // Header text
-            fontWeight = FontWeight.Bold, // Bold font weight
-            fontSize = 15.sp, // Medium font size
-            color = Color(0xFF1A237E) // Dark text color
-        )
-        // Vertical spacing below the header
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Card container displaying target muscle group summary (e.g., Legs)
-        Card(
-            modifier = Modifier.width(140.dp), // Fixed width for a compact card look
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // White background for the card
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp) // Subtle shadow elevation
-        ) {
-            // Inner column container for card contents
-            Column(
-                modifier = Modifier.padding(12.dp) // Internal padding inside the card
+        // ---- Header: title, logo and the muscle group card ----
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Background container for the muscle icon
-                Box(
-                    modifier = Modifier
-                        .size(36.dp) // Fixed square size for icon container
-                        .background(Color(0xFFFFF3E0), RoundedCornerShape(8.dp)), // Light orange rounded background
-                    contentAlignment = Alignment.Center // Center the icon inside the box
-                ) {
-                    // Emoji representing leg workouts
-                    Text(text = "🏃", fontSize = 18.sp)
+                Text(
+                    text = "Challenges",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A237E)
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.size(8.dp).background(Color.Black, CircleShape))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Box(modifier = Modifier.size(8.dp).background(Color.Red, CircleShape))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = "MOVA", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1A237E))
                 }
-                // Vertical spacing below the icon
-                Spacer(modifier = Modifier.height(8.dp))
-                // Text showing the muscle group name
-                Text(text = "Legs", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1A1C1E))
-                // Text showing workout count for the muscle group
-                Text(text = "10 Workouts", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "Target Muscle Groups",
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                color = Color(0xFF1A237E)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Static placeholder card matching the prototype. Replace with real data later.
+            Card(
+                modifier = Modifier.width(140.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(Color(0xFFFFF3E0), RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "C", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD9820B))
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = "Legs", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1A1C1E))
+                    Text(text = "10 Workouts", fontSize = 11.sp, color = Color.Gray)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Active Programs",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = Color(0xFF1A237E)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // Vertical spacing between sections
-        Spacer(modifier = Modifier.height(24.dp))
-        // Section header for Active Programs djfb
-        Text(
-            text = "Active Programs", // Header text
-            fontWeight = FontWeight.Bold, // Bold font weight
-            fontSize = 16.sp, // Medium-large font size
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        // Vertical spacing below section header
-        Spacer(modifier = Modifier.height(12.dp))
+        // ---- Body: exactly one of these states is shown at a time ----
+        // `when` picks the first branch that matches, so the order is the priority:
+        // loading, then error, then empty, then the list.
+        when {
+            isLoading -> item {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(120.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFFD9820B))
+                }
+            }
 
-        // Reusable card composable call for the first active program (7-Day Jumpstart)
-        ActiveProgramCard(
-            title = "7-Day Jumpstart", // Program title
-            subtitle = "Build consistency", // Program description subtitle
-            progressText = "6/7 days", // Current progress text in days
-            progressValue = 6f / 7f, // Numerical progress ratio for progress bar
-            percentageString = "85%" // Completion percentage string
-        )
+            errorMessage != null -> item {
+                Text(
+                    text = errorMessage ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 12.sp
+                )
+            }
 
-        // Vertical spacing between cards
-        Spacer(modifier = Modifier.height(12.dp))
+            challenges.isEmpty() -> item {
+                Text(
+                    text = "You haven't joined any challenges yet.",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
 
-        // Reusable card composable call for the second active program (14-Day Shred)
-        ActiveProgramCard(
-            title = "14-Day Shred", // Program title
-            subtitle = "High-intensity fat burn", // Program description subtitle
-            progressText = "6/14 days", // Current progress text in days
-            progressValue = 6f / 14f, // Numerical progress ratio for progress bar
-            percentageString = "42%" // Completion percentage string
-        )
-
-        // Vertical spacing between cards
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Reusable card composable call for the third active program (30-Day Endurance)
-        ActiveProgramCard(
-            title = "30-Day Endurance", // Program title
-            subtitle = "Ultimate body shaping", // Program description subtitle
-            progressText = "0/30 days", // Current progress text in days
-            progressValue = 0f / 30f, // Numerical progress ratio for progress bar
-            percentageString = "0%" // Completion percentage string
-        )
+            else -> items(challenges, key = { it.id }) { challenge ->
+                ActiveProgramCard(
+                    title = challenge.title,
+                    subtitle = challenge.description,
+                    progressText = "${challenge.daysCompleted}/${challenge.durationDays} days",
+                    progressValue = challenge.progressPercentage / 100f, // the bar needs 0.0 to 1.0
+                    percentageString = "${challenge.progressPercentage}%",
+                    completed = challenge.completed,
+                    onCheckIn = { viewModel.checkIn(userId, challenge.id) }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
     }
 }
 
 /**
- * Reusable composable function for displaying an individual active fitness challenge program card.
+ * Card for one active programme.
+ *
+ * @param completed  Hides the check-in button once the programme is finished.
+ * @param onCheckIn  Called when the user records today's workout.
  */
 @Composable
 fun ActiveProgramCard(
-    title: String, // Title parameter for the program
-    subtitle: String, // Subtitle/description parameter for the program
-    progressText: String, // Text showing day-based progress (e.g., 6/7 days)
-    progressValue: Float, // Float ratio between 0.0 and 1.0 for the progress bar
-    percentageString: String // String representation of overall percentage completed
+    title: String,
+    subtitle: String,
+    progressText: String,
+    progressValue: Float,
+    percentageString: String,
+    completed: Boolean,
+    onCheckIn: () -> Unit
 ) {
-    // Card container for the active program item
     Card(
-        modifier = Modifier.fillMaxWidth(), // Fill maximum available width
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // White background color
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp) // Subtle elevation shadow
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        // Inner column layout for card content elements
-        Column(
-            modifier = Modifier
-                .fillMaxWidth() // Span full width of card
-                .padding(16.dp) // Internal padding for content spacing
-        ) {
-            // Top row inside card holding program title and day progress text
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(), // Span full width
-                horizontalArrangement = Arrangement.SpaceBetween, // Space title and progress apart
-                verticalAlignment = Alignment.CenterVertically // Center align vertically
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Text showing the main program title
-                Text(
-                    text = title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    color = Color(0xFF1A1C1E)
-                )
-                // Text showing current progress days (e.g., 6/7 days)
-                Text(
-                    text = progressText,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                    color = Color(0xFFD9820B)
-                )
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1A1C1E))
+                Text(progressText, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFFD9820B))
             }
-            // Vertical spacing below title row
             Spacer(modifier = Modifier.height(2.dp))
-            // Text showing program subtitle/description
-            Text(text = subtitle, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            // Vertical spacing before progress bar
+            Text(subtitle, fontSize = 11.sp, color = Color.Gray)
             Spacer(modifier = Modifier.height(12.dp))
-            // Linear progress indicator representing challenge completion ratio
+
+            // The lambda form lets the bar read its value during drawing rather than during
+            // recomposition. If your Material3 version doesn't accept a lambda, use
+            // `progress = progressValue` instead.
             LinearProgressIndicator(
-                progress = progressValue, // Lambda providing progress ratio
+                progress =  progressValue ,
                 modifier = Modifier
-                    .fillMaxWidth() // Fill full card width
-                    .height(6.dp) // Height thickness of progress bar
-                    .clip(RoundedCornerShape(3.dp)), // Rounded corner clipping for smooth look
-                color = Color(0xFFD9820B), // Amber color for filled progress portion
-                trackColor = Color(0xFFF1F3F5) // Light grey background track color
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp)),
+                color = Color(0xFFD9820B),
+                trackColor = Color(0xFFF1F3F5)
             )
-            // Vertical spacing below progress bar
+
             Spacer(modifier = Modifier.height(8.dp))
-            // Bottom row showing overall progress label and percentage completed
             Row(
-                modifier = Modifier.fillMaxWidth(), // Span full width
-                horizontalArrangement = Arrangement.SpaceBetween // Space items to opposite ends
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Label text for overall progress
-                Text(text = "Overall progress", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                // Text showing exact completion percentage
-                Text(
-                    text = percentageString,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1C1E)
-                )
+                Text("Overall progress", fontSize = 11.sp, color = Color.Gray)
+                Text(percentageString, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1C1E))
+            }
+
+            // Only shown while the program is in progress. The server also limits check-in
+            // to once per day, so tapping again shows a message instead of counting twice.
+            if (!completed) {
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onCheckIn,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("Check in today", fontSize = 12.sp)
+                }
             }
         }
     }

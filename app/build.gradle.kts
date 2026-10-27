@@ -110,6 +110,9 @@ dependencies {
     // DataStore (Settings)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
+    // Google ML Kit On-Device Translation
+    implementation("com.google.mlkit:translate:17.0.2")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")

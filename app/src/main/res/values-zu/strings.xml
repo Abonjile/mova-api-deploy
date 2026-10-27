@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">MOVA</string>
+    <string name="rewards_title">Imivuzo</string>
+    <string name="day_streak_format">Izinsuku ezingu-%d zokulandelana!</string>
+    <string name="consistency_level_format">Izinga lokungaguquguquki: %d%% ngesonto</string>
+    <string name="active_challenge_rewards">Imivuzo Yezinselelo Ezisebenzayo</string>
+    <string name="no_claimable_rewards">Ayikho imivuzo etholakalayo njengamanje.</string>
+    <string name="claimed">Isitatshwa</string>
+    <string name="claim">Funa</string>
+    <string name="milestone_badges">Izimpawu Zezikhumbuzo</string>
+    <string name="no_milestone_badges">Azikho izimpawu zezikhumbuzo ezibhalisiwe.</string>
+</resources>

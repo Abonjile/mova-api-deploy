@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
@@ -139,6 +141,16 @@ class UserViewModel @Inject constructor(
         notificationsEnabled: Boolean,
         biometricEnabled: Boolean
     ) {
+        // Map human-readable language string to ISO 639-1 language tags
+        val languageTag = when (language.lowercase()) {
+            "isizulu", "zulu" -> "zu"
+            "sesotho", "sotho" -> "st"
+            else -> "en"
+        }
+        // Apply the selected language globally to the app runtime
+        val appLocale = LocaleListCompat.forLanguageTags(languageTag)
+        AppCompatDelegate.setApplicationLocales(appLocale)
+
         viewModelScope.launch {
             val userId = sessionManager.getUserId() ?: run {
                 Log.w(TAG, "Cannot update settings — no session")

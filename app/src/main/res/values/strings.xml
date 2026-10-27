@@ -1,3 +1,12 @@
 <resources>
-    <string name="app_name">Mova</string>
+    <string name="app_name">MOVA</string>
+    <string name="rewards_title">Rewards</string>
+    <string name="day_streak_format">%d Day Streak!</string>
+    <string name="consistency_level_format">Consistency level: %d%% weekly</string>
+    <string name="active_challenge_rewards">Active Challenge Rewards</string>
+    <string name="no_claimable_rewards">No claimable rewards available right now.</string>
+    <string name="claimed">Claimed</string>
+    <string name="claim">Claim</string>
+    <string name="milestone_badges">Milestone Badges</string>
+    <string name="no_milestone_badges">No milestone badges recorded.</string>
 </resources>
