@@ -3,7 +3,6 @@ package com.example.mova.data.local
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.example.mova.data.local.OfflineWorkoutLog
 
 @Dao
 interface OfflineWorkoutLogDao {

@@ -6,12 +6,13 @@ import androidx.room.RoomDatabase
 import com.example.mova.data.models.UserEntity
 
 @Database(
-    entities = [UserEntity::class, OfflineWorkoutLog::class],
-    version = 3,
+    entities = [UserEntity::class, OfflineWorkoutLog::class, WorkoutEntity::class],
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class MovaDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun offlineWorkoutLogDao(): OfflineWorkoutLogDao
+    abstract fun workoutDao(): WorkoutDao
 }

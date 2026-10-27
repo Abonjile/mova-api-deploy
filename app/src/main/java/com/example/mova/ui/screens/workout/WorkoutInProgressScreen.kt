@@ -36,6 +36,7 @@ import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.emitter.Emitter
 import java.util.concurrent.TimeUnit
+import androidx.compose.ui.platform.LocalContext
 
 // Phases of the workout screen
 private enum class Phase { SETUP, EXERCISING, COMPLETE }
@@ -51,9 +52,21 @@ fun WorkoutInProgressScreen(
     workoutId: String,
     userId: String = "test_user_123",
     onBack: () -> Unit = {},
-    onFinish: () -> Unit = {},
-    repository: WorkoutRepository = WorkoutRepository()
+    onFinish: () -> Unit = {}
 ) {
+    // Setup offline database and sync manager
+    val context = LocalContext.current
+    val repository = remember(context) { WorkoutRepository(context) }
+    val db = remember {
+        androidx.room.Room.databaseBuilder(
+            context.applicationContext,
+            com.example.mova.data.local.MovaDatabase::class.java,
+            "mova_database"
+        ).fallbackToDestructiveMigration().build()
+    }
+    val syncManager = remember { com.example.mova.data.sync.SyncManager(context, db) }
+    val offlineDao = remember { db.offlineWorkoutLogDao() }
+
     // Data state
     var workout by remember { mutableStateOf<Workout?>(null) }
     var exercises by remember { mutableStateOf<List<Exercise>>(emptyList()) }
@@ -145,6 +158,8 @@ fun WorkoutInProgressScreen(
                     phase = Phase.COMPLETE
                     finalResult = finishWorkoutSession(
                         repository = repository,
+                        syncManager = syncManager,
+                        offlineDao = offlineDao,
                         userId = userId,
                         workoutId = workoutId,
                         exercisesCompleted = updatedCompleted,
@@ -405,6 +420,8 @@ fun WorkoutInProgressScreen(
                                         scope.launch {
                                             finalResult = finishWorkoutSession(
                                                 repository = repository,
+                                                syncManager = syncManager,
+                                                offlineDao = offlineDao,
                                                 userId = userId,
                                                 workoutId = workoutId,
                                                 exercisesCompleted = exercisesCompleted,
@@ -434,6 +451,8 @@ fun WorkoutInProgressScreen(
                                 scope.launch {
                                     finalResult = finishWorkoutSession(
                                         repository = repository,
+                                        syncManager = syncManager,
+                                        offlineDao = offlineDao,
                                         userId = userId,
                                         workoutId = workoutId,
                                         exercisesCompleted = exercisesCompleted,
@@ -477,32 +496,67 @@ private fun formatTime(seconds: Int): String {
 
 private suspend fun finishWorkoutSession(
     repository: WorkoutRepository,
+    syncManager: com.example.mova.data.sync.SyncManager,
+    offlineDao: com.example.mova.data.local.OfflineWorkoutLogDao,
     userId: String,
     workoutId: String,
     exercisesCompleted: Int,
     totalSecondsElapsed: Int
 ): WorkoutSummary {
     val durationMinutes = maxOf(1, totalSecondsElapsed / 60)
-    return try {
-        val response = repository.logWorkout(
-            WorkoutLogRequest(
-                userId = userId,
-                workoutId = workoutId,
-                durationMinutes = durationMinutes,
-                weightAtTime = 70.0,
-                userNote = ""
+
+    if (syncManager.isOnline()) {
+        // WE ARE ONLINE: Send to API
+        return try {
+            val response = repository.logWorkout(
+                WorkoutLogRequest(
+                    userId = userId,
+                    workoutId = workoutId,
+                    durationMinutes = durationMinutes,
+                    weightAtTime = 70.0,
+                    userNote = ""
+                )
             )
-        )
-        WorkoutSummary(
-            totalCaloriesBurned = response.calculatedCalories,
-            exercisesCompleted = exercisesCompleted,
-            totalDurationMinutes = durationMinutes
-        )
-    } catch (_: Exception) {
-        WorkoutSummary(
-            totalCaloriesBurned = exercisesCompleted * 30,
-            exercisesCompleted = exercisesCompleted,
-            totalDurationMinutes = durationMinutes
-        )
+            WorkoutSummary(
+                totalCaloriesBurned = response.calculatedCalories,
+                exercisesCompleted = exercisesCompleted,
+                totalDurationMinutes = durationMinutes
+            )
+        } catch (e: Exception) {
+            // API failed, fallback to saving offline
+            saveOffline(offlineDao, userId, workoutId, durationMinutes, exercisesCompleted)
+        }
+    } else {
+        // WE ARE OFFLINE: Save to RoomDB
+        return saveOffline(offlineDao, userId, workoutId, durationMinutes, exercisesCompleted)
     }
 }
+
+// Helper function to save offline and return a summary
+private suspend fun saveOffline(
+    offlineDao: com.example.mova.data.local.OfflineWorkoutLogDao,
+    userId: String,
+    workoutId: String,
+    durationMinutes: Int,
+    exercisesCompleted: Int
+): WorkoutSummary {
+    offlineDao.insertLog(
+        com.example.mova.data.local.OfflineWorkoutLog(
+            userId = userId,
+            workoutId = workoutId,
+            durationMinutes = durationMinutes,
+            weightAtTime = 70.0,
+            userNote = "Saved offline - will sync later"
+        )
+    )
+
+    // Rough estimate since we are offline and can't hit the backend calculator
+    val estimatedCalories = exercisesCompleted * 30
+
+    return WorkoutSummary(
+        totalCaloriesBurned = estimatedCalories,
+        exercisesCompleted = exercisesCompleted,
+        totalDurationMinutes = durationMinutes
+    )
+}
+

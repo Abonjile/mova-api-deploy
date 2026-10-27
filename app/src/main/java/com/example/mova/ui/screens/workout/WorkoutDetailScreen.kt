@@ -18,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import com.example.mova.data.models.Workout
 import com.example.mova.data.models.Exercise
 import com.example.mova.data.repository.WorkoutRepository
@@ -26,9 +27,10 @@ import com.example.mova.data.repository.WorkoutRepository
 fun WorkoutDetailScreen(
     workoutId: String,
     onBack: () -> Unit = {},
-    onStartWorkout: (String) -> Unit = {},
-    repository: WorkoutRepository = WorkoutRepository()
+    onStartWorkout: (String) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val repository = remember(context) { WorkoutRepository(context) }
     var workout by remember { mutableStateOf<Workout?>(null) }
     var exerciseMap by remember { mutableStateOf<Map<String, Exercise>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(true) }
