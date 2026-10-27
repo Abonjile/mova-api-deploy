@@ -1,7 +1,6 @@
 package com.example.mova.ui.screens.profile
 
 import android.util.Log
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mova.data.models.User
@@ -38,6 +37,8 @@ class UserViewModel @Inject constructor(
 
     // Dark mode state exposed directly from SessionManager
     val darkMode: StateFlow<Boolean> get() = sessionManager.darkMode
+    val largeText: StateFlow<Boolean> get() = sessionManager.largeText
+    val highContrast: StateFlow<Boolean> get() = sessionManager.highContrast
 
     init {
         Log.d(TAG, "UserViewModel initialized")
@@ -163,6 +164,20 @@ class UserViewModel @Inject constructor(
     fun setDarkMode(enabled: Boolean) {
         viewModelScope.launch {
             sessionManager.setDarkMode(enabled)
+        }
+    }
+
+    // Persist Large text preference via SessionManager
+    fun setLargeText(enabled: Boolean) {
+        viewModelScope.launch {
+            sessionManager.setLargeText(enabled)
+        }
+    }
+
+    // Persist High contrast preference via SessionManager
+    fun setHighContrast(enabled: Boolean) {
+        viewModelScope.launch {
+            sessionManager.setHighContrast(enabled)
         }
     }
 

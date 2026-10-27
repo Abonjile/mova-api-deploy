@@ -40,6 +40,8 @@ class SessionManager @Inject constructor(
         private val KEY_USER_ID = stringPreferencesKey("user_id")
         private val KEY_ONBOARDED = booleanPreferencesKey("onboarding_complete")
         private val KEY_DARK_MODE = booleanPreferencesKey("dark_mode")
+        private val KEY_LARGE_TEXT = booleanPreferencesKey("large_text")
+        private val KEY_HIGH_CONTRAST = booleanPreferencesKey("high_contrast")
     }
 
     // Internal scope for collecting DataStore flows into StateFlows
@@ -99,7 +101,7 @@ class SessionManager @Inject constructor(
      */
     suspend fun isLoggedIn(): Boolean = getUserId() != null
 
-    // Dark mode (controlled by user's device perference)
+    // Dark mode (controlled by user's device preference)
     /**
      * Reacts to dark mode flag,
      * emits current value immediately and on every change
@@ -107,12 +109,24 @@ class SessionManager @Inject constructor(
     private val _darkMode = MutableStateFlow(false)
     val darkMode: StateFlow<Boolean> = _darkMode.asStateFlow()
 
+    // Large Text
+    private val _largeText = MutableStateFlow(false)
+    val largeText: StateFlow<Boolean> = _largeText.asStateFlow()
+
+    // High Contrast
+    private val _highContrast = MutableStateFlow(false)
+    val highContrast: StateFlow<Boolean> = _highContrast.asStateFlow()
+
     init {
-        // Primes the StateFlow with the persisted value when app starts
+        // Primes all the StateFlows with the persisted values when app starts
         scope.launch {
-            val initial = context.sessionDataStore.data.first()[KEY_DARK_MODE] ?: false
-            Log.d(TAG,"darkMode initial -> $initial")
-            _darkMode.value = initial
+            val prefs = context.sessionDataStore.data.first()
+
+            _darkMode.value = prefs[KEY_DARK_MODE] ?: false
+            _largeText.value = prefs[KEY_LARGE_TEXT] ?: false
+            _highContrast.value = prefs[KEY_HIGH_CONTRAST] ?: false
+
+            Log.d(TAG, "Prefs loaded -> dark: ${_darkMode.value}, largeText: ${_largeText.value}, highContrast: ${_highContrast.value}")
         }
     }
 
@@ -120,5 +134,17 @@ class SessionManager @Inject constructor(
         Log.d(TAG, "darkMode -> $enabled")
         _darkMode.value = enabled
         context.sessionDataStore.edit { it[KEY_DARK_MODE] = enabled }
+    }
+
+    suspend fun setLargeText(enabled: Boolean) {
+        Log.d(TAG, "largeText -> $enabled")
+        _largeText.value = enabled
+        context.sessionDataStore.edit { it[KEY_LARGE_TEXT] = enabled }
+    }
+
+    suspend fun setHighContrast(enabled: Boolean) {
+        Log.d(TAG, "highContrast -> $enabled")
+        _highContrast.value = enabled
+        context.sessionDataStore.edit { it[KEY_HIGH_CONTRAST] = enabled }
     }
 }

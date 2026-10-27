@@ -159,7 +159,7 @@ fun WorkoutInProgressScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Top bar
         Row(
@@ -169,14 +169,18 @@ fun WorkoutInProgressScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF00008B))
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = workout?.name ?: "Workout",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF00008B)
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.weight(1f))
             if (phase != Phase.COMPLETE) {
@@ -184,7 +188,7 @@ fun WorkoutInProgressScreen(
                     text = "${currentIndex + 1} / ${exercises.size}",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF00008B),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(end = 16.dp)
                 )
             }
@@ -199,7 +203,7 @@ fun WorkoutInProgressScreen(
 
             exercises.isEmpty() -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No exercises available", color = Color.Gray)
+                    Text("No exercises available", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -295,7 +299,7 @@ fun WorkoutInProgressScreen(
                                 contentScale = ContentScale.Fit,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.White)
+                                    .background(MaterialTheme.colorScheme.surface)
                                     .padding(8.dp)
                             )
                         }
@@ -306,7 +310,7 @@ fun WorkoutInProgressScreen(
                             text = current.name,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF00008B),
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center
                         )
 
@@ -315,7 +319,7 @@ fun WorkoutInProgressScreen(
                         Text(
                             text = "${workoutExercise?.sets ?: 3} sets × ${workoutExercise?.reps ?: 12} reps",
                             fontSize = 14.sp,
-                            color = Color(0xFF757575)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Spacer(Modifier.height(16.dp))
@@ -444,7 +448,7 @@ fun WorkoutInProgressScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text("QUIT WORKOUT", fontSize = 14.sp, fontWeight = FontWeight.Bold)

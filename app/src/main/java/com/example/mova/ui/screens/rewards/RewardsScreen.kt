@@ -36,11 +36,11 @@ fun RewardsScreen() {
                 color = MaterialTheme.colorScheme.onBackground
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(8.dp).background(Color.Black, CircleShape))
+                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.onBackground, CircleShape))
                 Spacer(modifier = Modifier.width(4.dp))
-                Box(modifier = Modifier.size(8.dp).background(Color.Red, CircleShape))
+                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.error, CircleShape))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = "MOVA", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(text = "MOVA", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
             }
         }
 
@@ -148,7 +148,7 @@ fun RewardsScreen() {
             text = "Milestone Badges",
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = Color(0xFF1A237E)
+            color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -167,7 +167,7 @@ fun RewardsScreen() {
             ) {
                 Text(text = "🔒", fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Champion", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.Gray)
+                Text(text = "Champion", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(text = "Win a challenge", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }

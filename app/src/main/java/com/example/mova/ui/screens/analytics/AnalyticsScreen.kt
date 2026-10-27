@@ -36,7 +36,7 @@ fun AnalyticsScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize() // Fill entire screen size
-            .background(Color(0xFFF8F9FA)) // Light grey screen background
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState()) // Enable scrolling for overflow content
             .padding(16.dp) // Padding around screen edges
     ) {
@@ -51,16 +51,16 @@ fun AnalyticsScreen() {
                 text = "Analytics", // Title string
                 fontSize = 24.sp, // Large font size
                 fontWeight = FontWeight.Bold, // Bold text weight
-                color = Color(color = 0xFF1A237E) //Dark Blue color
+                color = MaterialTheme.colorScheme.onBackground
             )
             // Row container for MOVA brand indicators
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Black brand dot
-                Box(modifier = Modifier.size(8.dp).background(Color.Black, CircleShape))
+                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.onBackground, CircleShape))
                 // Horizontal spacing between dots
                 Spacer(modifier = Modifier.width(4.dp))
                 // Red brand dot
-                Box(modifier = Modifier.size(8.dp).background(Color.Red, CircleShape))
+                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.error, CircleShape))
                 // Horizontal spacing before brand name
                 Spacer(modifier = Modifier.width(6.dp))
                 // Brand name text "MOVA"
@@ -107,7 +107,7 @@ fun AnalyticsScreen() {
         // Vertical spacing below period switcher
         Spacer(modifier = Modifier.height(16.dp))
         // Section header indicating goal setting status for the selected period
-        Text(text = "Goal Setting", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1A237E))
+        Text(text = "Goal Setting", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
         // Vertical spacing below header
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -128,23 +128,24 @@ fun AnalyticsScreen() {
                     // Left row grouping target emoji and text descriptions
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         // Target emoji icon
-                        Text(text = "🎯", fontSize = 20.sp, color = Color(0xFFD9820B))
+                        Text(text = "🎯", fontSize = 20.sp, color = MaterialTheme.colorScheme.secondary)
                         // Horizontal spacing
                         Spacer(modifier = Modifier.width(8.dp))
                         // Column holding subtitle label and dynamic goal description
                         Column {
                             // Subtitle label showing active period
-                            Text(text = "$selectedPeriod Active Goal", fontSize = 11.sp, color = Color.Gray)
+                            Text(text = "$selectedPeriod Active Goal", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             // Dynamic goal target text based on whether Weekly or Monthly is selected
                             Text(
                                 text = if (selectedPeriod == "Weekly") "Burn 2,000 cal this week" else "Burn 8,500 cal this month",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
                     // Edit icon symbol
-                    Text(text = "✏️", fontSize = 14.sp, color = Color.Gray)
+                    Text(text = "✏️", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 // Vertical spacing below header row
                 Spacer(modifier = Modifier.height(14.dp))
@@ -168,13 +169,13 @@ fun AnalyticsScreen() {
                     horizontalArrangement = Arrangement.SpaceBetween // Space items apart
                 ) {
                     // Status label text
-                    Text(text = "Current Status", fontSize = 11.sp, color = Color.Gray)
+                    Text(text = "Current Status", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     // Dynamic status text reflecting current burned calories vs target for the selected period
                     Text(
                         text = if (selectedPeriod == "Weekly") "1,420 / 2,000 cal" else "6,100 / 8,500 cal",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1C1E)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -183,7 +184,7 @@ fun AnalyticsScreen() {
         // Vertical spacing below goal setting card
         Spacer(modifier = Modifier.height(20.dp))
         // Section header for Performance Trends
-        Text(text = "Performance Trends", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1A237E))
+        Text(text = "Performance Trends", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
         // Vertical spacing below header
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -196,7 +197,7 @@ fun AnalyticsScreen() {
             // Inner column container for chart elements
             Column(modifier = Modifier.padding(16.dp)) {
                 // Dynamic section title for calories trend
-                Text(text = "$selectedPeriod Calories Trend".uppercase(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                Text(text = "$selectedPeriod Calories Trend".uppercase(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 // Vertical spacing below title
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -227,7 +228,7 @@ fun AnalyticsScreen() {
                     val labels = if (selectedPeriod == "Weekly") listOf("M", "T", "W", "T", "F", "S", "S") else listOf("Wk 1", "Wk 2", "Wk 3", "Wk 4")
                     // Render each label text
                     labels.forEach { label ->
-                        Text(text = label, fontSize = 10.sp, color = Color.Gray)
+                        Text(text = label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -245,7 +246,7 @@ fun AnalyticsScreen() {
             // Inner column container for bar chart elements
             Column(modifier = Modifier.padding(16.dp)) {
                 // Section title for training volume
-                Text(text = "Training Volume (Mins)".uppercase(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                Text(text = "Training Volume (Mins)".uppercase(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 // Vertical spacing below title
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -277,7 +278,7 @@ fun AnalyticsScreen() {
                     val labels = if (selectedPeriod == "Weekly") listOf("M", "T", "W", "T", "F", "S", "S") else listOf("Wk 1", "Wk 2", "Wk 3", "Wk 4")
                     // Render each label text
                     labels.forEach { label ->
-                        Text(text = label, fontSize = 10.sp, color = Color.Gray)
+                        Text(text = label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -295,7 +296,7 @@ fun AnalyticsScreen() {
             // Inner column container for chart content
             Column(modifier = Modifier.padding(16.dp)) {
                 // Section title for muscle distribution
-                Text(text = "MUSCLE GROUP DISTRIBUTION", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                Text(text = "MUSCLE GROUP DISTRIBUTION", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 // Vertical spacing below title
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -307,6 +308,7 @@ fun AnalyticsScreen() {
                 ) {
                     // Box containing custom Canvas for donut chart rendering
                     Box(modifier = Modifier.size(90.dp), contentAlignment = Alignment.Center) {
+                        val centerColor = MaterialTheme.colorScheme.surface
                         Canvas(modifier = Modifier.fillMaxSize()) {
                             val radius = size.minDimension / 2 // Calculate chart radius
                             val center = Offset(size.width / 2, size.height / 2) // Calculate center offset coordinate
@@ -321,7 +323,7 @@ fun AnalyticsScreen() {
                                 startAngle += sweep // Increment start angle for next slice
                             }
                             // Draw inner white circle to transform pie chart into a donut chart
-                            drawCircle(Color.White, radius = radius * 0.5f, center = center)
+                            drawCircle(centerColor, radius = radius * 0.5f, center = center)
                         }
                     }
 
@@ -349,6 +351,6 @@ fun LegendItem(color: Color, text: String) {
         // Horizontal spacing between dot and text
         Spacer(modifier = Modifier.width(6.dp))
         // Legend text description
-        Text(text = text, fontSize = 11.sp, color = Color(0xFF1A1C1E), fontWeight = FontWeight.Medium)
+        Text(text = text, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
     }
 }

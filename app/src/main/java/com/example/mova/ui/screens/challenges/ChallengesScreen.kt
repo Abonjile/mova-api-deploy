@@ -50,11 +50,11 @@ fun ChallengesScreen() {
                 // Horizontal spacing between the dots
                 Spacer(modifier = Modifier.width(4.dp))
                 // Red circle dot for branding design
-                Box(modifier = Modifier.size(8.dp).background(Color.Red, CircleShape))
+                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.error, CircleShape))
                 // Horizontal spacing before the brand name text
                 Spacer(modifier = Modifier.width(6.dp))
                 // Brand name text "MOVA"
-                Text(text = "MOVA", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1A237E))
+                Text(text = "MOVA", fontWeight = FontWeight.Bold, fontSize = 16.sp, color =  MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -66,7 +66,7 @@ fun ChallengesScreen() {
             text = "Target Muscle Groups", // Header text
             fontWeight = FontWeight.Bold, // Bold font weight
             fontSize = 15.sp, // Medium font size
-            color = Color(0xFF1A237E) // Dark text color
+            color = MaterialTheme.colorScheme.primary
         )
         // Vertical spacing below the header
         Spacer(modifier = Modifier.height(10.dp))
@@ -85,7 +85,7 @@ fun ChallengesScreen() {
                 Box(
                     modifier = Modifier
                         .size(36.dp) // Fixed square size for icon container
-                        .background(Color(0xFFFFF3E0), RoundedCornerShape(8.dp)), // Light orange rounded background
+                        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(8.dp)), // Light orange rounded background
                     contentAlignment = Alignment.Center // Center the icon inside the box
                 ) {
                     // Emoji representing leg workouts
@@ -94,7 +94,7 @@ fun ChallengesScreen() {
                 // Vertical spacing below the icon
                 Spacer(modifier = Modifier.height(8.dp))
                 // Text showing the muscle group name
-                Text(text = "Legs", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1A1C1E))
+                Text(text = "Legs", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                 // Text showing workout count for the muscle group
                 Text(text = "10 Workouts", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -181,14 +181,14 @@ fun ActiveProgramCard(
                     text = title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
-                    color = Color(0xFF1A1C1E)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 // Text showing current progress days (e.g., 6/7 days)
                 Text(
                     text = progressText,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
-                    color = Color(0xFFD9820B)
+                    color = MaterialTheme.colorScheme.secondary
                 )
             }
             // Vertical spacing below title row
@@ -204,8 +204,8 @@ fun ActiveProgramCard(
                     .fillMaxWidth() // Fill full card width
                     .height(6.dp) // Height thickness of progress bar
                     .clip(RoundedCornerShape(3.dp)), // Rounded corner clipping for smooth look
-                color = Color(0xFFD9820B), // Amber color for filled progress portion
-                trackColor = Color(0xFFF1F3F5) // Light grey background track color
+                color =  MaterialTheme.colorScheme.secondary, // Amber color for filled progress portion
+                trackColor = MaterialTheme.colorScheme.surfaceVariant // Light grey background track color
             )
             // Vertical spacing below progress bar
             Spacer(modifier = Modifier.height(8.dp))
@@ -221,7 +221,7 @@ fun ActiveProgramCard(
                     text = percentageString,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1C1E)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
