@@ -1,10 +1,7 @@
 /**
- * =====================================================================================
  * COMPOSABLE: AnalyticsScreen
- * =====================================================================================
  * Shows the goal, calorie progress, trend and volume charts, and the muscle group donut.
  * Everything is drawn from the server's AnalyticsDto. The period switch reloads the data.
- * =====================================================================================
  */
 package com.example.mova.ui.screens.analytics
 
@@ -30,21 +27,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import java.time.LocalDate
-import java.time.format.TextStyle
+import java.util.Calendar
 import java.util.Locale
 
 /**
  * X-axis labels for the trend charts.
- * Monthly shows four weeks, oldest first, matching the order the server returns.
+ *
+ * Weekly: single-letter weekday names for the last seven days, ending today.
+ * Monthly: four weekly buckets, oldest first.
+ *
+ * Uses java.util.Calendar rather than java.time, because java.time needs API 26
+ * and this app's minSdk is 24.
  */
 private fun trendLabels(period: String): List<String> =
     if (period == "Weekly") {
-        val today = LocalDate.now()
-        (6 downTo 0).map { offset ->
-            today.minusDays(offset.toLong())
-                .dayOfWeek
-                .getDisplayName(TextStyle.NARROW, Locale.getDefault())
+        val locale = Locale.getDefault()
+        (6 downTo 0).map { daysAgo ->
+            val day = Calendar.getInstance().apply {
+                add(Calendar.DAY_OF_YEAR, -daysAgo)
+            }
+            // SHORT gives "Mon", "Tue" and so on. Take the first letter for the chart axis.
+            val short = day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, locale) ?: ""
+            short.take(1)
         }
     } else {
         listOf("Wk 1", "Wk 2", "Wk 3", "Wk 4")
@@ -427,7 +431,7 @@ fun AnalyticsScreen(
 }
 
 /**
- * One row in the donut legend: a coloured dot followed by the label.
+ * One row in the donut legend: a colored dot followed by the label.
  */
 @Composable
 fun AnalyticsLegendItem(color: Color, text: String) {

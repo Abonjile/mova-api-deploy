@@ -6,7 +6,7 @@
  */
 package com.example.mova.data.remote.model
 
-/** One active programme and the user's progress through it. */
+/** One active program and the user's progress through it. */
 data class ChallengeDto(
     val id: String,                 // used to build check-in and join URLs
     val title: String,
