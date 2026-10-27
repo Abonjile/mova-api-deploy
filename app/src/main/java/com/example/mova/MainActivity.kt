@@ -16,14 +16,24 @@ import com.example.mova.ui.theme.MovaTheme
 import com.example.mova.data.session.SessionManager
 import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var sessionManager: SessionManager
+    @Inject lateinit var database: com.example.mova.data.local.MovaDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Sync any offline workouts when the app opens
+        lifecycleScope.launch {
+            val syncManager = com.example.mova.data.sync.SyncManager(applicationContext, database)
+            syncManager.syncPendingLogs()
+        }
+
         setContent {
             // Observes dark mode preference from DataStore
             val darkMode by sessionManager.darkMode.collectAsState()
