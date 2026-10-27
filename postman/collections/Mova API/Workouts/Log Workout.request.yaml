@@ -1,0 +1,34 @@
+$kind: http-request
+name: Log Workout
+method: POST
+url: '{{baseUrl}}/api/workouts/log'
+order: 4000
+description: |-
+  Log a completed workout session. Automatically calculates calories burned
+  based on exercise MET values and the user's weight at the time.
+  `userId`, `workoutId`, `durationMinutes`, and `weightAtTime` are required.
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "userId": "{{userId}}",
+      "workoutId": "{{workoutId}}",
+      "durationMinutes": 45,
+      "weightAtTime": 70,
+      "userNote": "Felt great today!"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 201", function () {
+        pm.response.to.have.status(201);
+      });
+      pm.test("Response contains log and calculatedCalories", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("log");
+        pm.expect(json).to.have.property("calculatedCalories");
+      });

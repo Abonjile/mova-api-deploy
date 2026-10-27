@@ -1,0 +1,25 @@
+$kind: http-request
+name: Get Workout
+method: GET
+url: '{{baseUrl}}/api/workouts/:id'
+order: 3000
+description: Retrieve a single workout by its workoutId, including its associated exercises.
+pathVariables:
+  - key: id
+    value: '{{workoutId}}'
+    description: The unique identifier of the workout
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("Response contains workoutId", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("workoutId");
+      });
+      pm.test("Response contains exercises array", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("exercises").that.is.an("array");
+      });

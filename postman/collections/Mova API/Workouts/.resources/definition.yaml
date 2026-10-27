@@ -1,0 +1,4 @@
+$kind: collection
+name: Workouts
+description: Endpoints for creating, retrieving, and logging workouts, and managing workout exercises.
+order: 3000
