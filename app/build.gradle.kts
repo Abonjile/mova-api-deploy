@@ -104,6 +104,9 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    // Confetti Dependency
+    implementation("nl.dionsegijn:konfetti-compose:2.0.4")
+
     // Biometric Authentication
     implementation("androidx.biometric:biometric:1.1.0")
 

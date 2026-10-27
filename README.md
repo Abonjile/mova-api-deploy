@@ -229,10 +229,8 @@ The `seed.js` script only needs to be run **once**. It populates the local Mongo
 Open `app/src/main/java/com/example/mova/data/remote/api/ApiService.kt` and confirm `BASE_URL`:
 
 ```kotlin
-const val BASE_URL = "http://10.0.2.2:3000/"   // Android emulator
+const val BASE_URL = "https://mova-api-deploy.onrender.com/"   // Android emulator
 ```
-
-For a **physical device**, replace `10.0.2.2` with your PC's LAN IP (e.g. `http://192.168.1.42:3000/`) and ensure the device is on the same WiFi network.
 
 ### Build and Run the Android App
 

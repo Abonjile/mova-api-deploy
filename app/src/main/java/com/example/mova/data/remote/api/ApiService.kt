@@ -43,8 +43,8 @@ interface ApiService {
     ): List<WorkoutExercise>
 
     companion object {
-        // 10.0.2.2 = localhost from Android emulator (BlueStacks may differ)
-        const val BASE_URL = "http://10.0.2.2:3000/"
+        // Backend Api deployed on Render at the following url
+        const val BASE_URL = "https://mova-api-deploy.onrender.com/"
     }
 }
 

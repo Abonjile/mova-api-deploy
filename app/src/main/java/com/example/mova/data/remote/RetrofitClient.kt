@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
  * Singleton object responsible for initializing and providing the Retrofit network client.
  */
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:3000/"
+    private const val BASE_URL = "https://mova-api-deploy.onrender.com/"
 
     // Intercepts HTTP requests and responses for debugging
     private val loggingInterceptor = HttpLoggingInterceptor().apply {

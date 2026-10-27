@@ -17,10 +17,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import com.example.mova.ui.theme.MovaBlue
 import com.example.mova.ui.theme.MovaTeal
-import com.example.mova.ui.theme.MovaOffWhite
 import com.example.mova.ui.theme.MovaGray
 import com.example.mova.ui.theme.MovaLightGray
-import com.example.mova.ui.theme.MovaBlack
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,8 +40,8 @@ fun SettingsScreen(
 
     // State variables for settings toggles
     val darkMode by viewModel.darkMode.collectAsState()
-    var largeText by remember { mutableStateOf(true) }
-    var highContrast by remember { mutableStateOf(false) }
+    val largeText by viewModel.largeText.collectAsState()
+    val highContrast by viewModel.highContrast.collectAsState()
     var biometricAuth by remember(currentUser?.userId) { mutableStateOf(currentUser?.biometricEnabled ?: false) }
     var notificationsEnabled by remember(currentUser?.userId) { mutableStateOf(currentUser?.notificationsEnabled ?: true) }
     var selectedLanguage by remember(currentUser?.userId) { mutableStateOf(currentUser?.language ?: "English") }
@@ -97,9 +95,9 @@ fun SettingsScreen(
 
                 // MOVA Logo with dots (branding)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(MovaBlack))
+                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onBackground))
                     Spacer(modifier = Modifier.width(2.dp))
-                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color.Red))
+                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.error))
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("MOVA", fontWeight = FontWeight.Bold, color = MovaBlue, fontSize = 18.sp)
                 }
@@ -113,7 +111,7 @@ fun SettingsScreen(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MovaLightGray),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -135,9 +133,8 @@ fun SettingsScreen(
                         subtitle = "Increase readability across pages",
                         checked = largeText,
                         onCheckedChange = {
-                            largeText = it
+                            viewModel.setLargeText(it)
                             Log.d("SettingsScreen", "Larger Text toggled: $it")
-                            // TODO: Apply text size change
                         }
                     )
                     Divider(
@@ -149,9 +146,8 @@ fun SettingsScreen(
                         subtitle = "Enhance visually contrasting boundaries",
                         checked = highContrast,
                         onCheckedChange = {
-                            highContrast = it
+                            viewModel.setHighContrast(it)
                             Log.d("SettingsScreen", "High Contrast toggled: $it")
-                            // TODO: Apply high contrast mode
                         }
                     )
                 }
@@ -165,7 +161,7 @@ fun SettingsScreen(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MovaLightGray),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -201,7 +197,7 @@ fun SettingsScreen(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MovaLightGray),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -216,7 +212,7 @@ fun SettingsScreen(
                                 text = language,
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.weight(1f),
-                                color = if (language == selectedLanguage) MovaTeal else MaterialTheme.colorScheme.onBackground
+                                color = if (language == selectedLanguage) MovaTeal else MaterialTheme.colorScheme.onSurface
                             )
                             RadioButton(
                                 selected = language == selectedLanguage,

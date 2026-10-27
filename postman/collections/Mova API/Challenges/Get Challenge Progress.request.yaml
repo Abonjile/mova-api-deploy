@@ -1,0 +1,28 @@
+$kind: http-request
+name: Get Challenge Progress
+method: GET
+url: '{{baseUrl}}/api/challenges/:id/progress'
+order: 4000
+description: |-
+  Get a user's progress on a specific challenge.
+  Query parameter `userId` is required. Returns 404 if the user has not joined the challenge.
+pathVariables:
+  - key: id
+    value: '{{challengeId}}'
+    description: The unique identifier of the challenge
+queryParams:
+  - key: userId
+    value: '{{userId}}'
+    description: Required. The user whose progress to retrieve.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("Response contains userId and challengeId", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("userId");
+        pm.expect(json).to.have.property("challengeId");
+      });
