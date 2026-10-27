@@ -11,6 +11,9 @@ interface WorkoutDao {
     @Query("SELECT * FROM cached_workouts")
     suspend fun getAllWorkouts(): List<WorkoutEntity>
 
+    @Query("SELECT * FROM cached_workouts WHERE workoutId = :id")
+    suspend fun getWorkoutById(id: String): WorkoutEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWorkouts(workouts: List<WorkoutEntity>)
 

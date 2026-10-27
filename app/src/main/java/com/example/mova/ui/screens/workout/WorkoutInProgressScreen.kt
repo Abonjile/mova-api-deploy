@@ -97,9 +97,20 @@ fun WorkoutInProgressScreen(
             val allEx = repository.getAllExercises()
             val map = allEx.associateBy { it.exerciseId }
             workout = w
-            exercises = w.exercises.sortedBy { it.orderNumber }.mapNotNull { map[it.exerciseId] }
+            val mappedExercises = w.exercises.sortedBy { it.orderNumber }.map { we ->
+                map[we.exerciseId] ?: Exercise(
+                    exerciseId = we.exerciseId,
+                    name = we.exerciseId.removePrefix("ex_").replace("_", " ").split(" ")
+                        .joinToString(" ") { word -> word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() } }
+                        .ifEmpty { "Exercise" },
+                    targetMuscleGroup = "General"
+                )
+            }
+            exercises = if (mappedExercises.isNotEmpty()) mappedExercises else listOf(
+                Exercise(exerciseId = "ex_default", name = w.name.ifEmpty { "Exercise" }, targetMuscleGroup = "Full Body")
+            )
         } catch (_: Exception) {
-            // Handled via empty exercises state
+            // Handled via fallback
         } finally {
             isLoading = false
         }

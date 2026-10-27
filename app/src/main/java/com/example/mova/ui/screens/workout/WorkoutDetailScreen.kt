@@ -39,10 +39,14 @@ fun WorkoutDetailScreen(
     LaunchedEffect(workoutId) {
         try {
             isLoading = true
+            // 1. Fetch workout (will hit cache if offline)
             val w = repository.getWorkoutById(workoutId)
-            val allExercises = repository.getAllExercises()
             workout = w
+
+            // 2. Fetch exercises (will hit cache if offline)
+            val allExercises = repository.getAllExercises()
             exerciseMap = allExercises.associateBy { it.exerciseId }
+
             errorMessage = null
         } catch (e: Exception) {
             errorMessage = "Could not load workout: ${e.message}"
@@ -162,9 +166,12 @@ fun WorkoutDetailScreen(
 
                 w.exercises.sortedBy { it.orderNumber }.forEachIndexed { index, we ->
                     val ex = exerciseMap[we.exerciseId]
+                    val exerciseName = ex?.name ?: we.exerciseId.removePrefix("ex_").replace("_", " ").split(" ")
+                        .joinToString(" ") { word -> word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() } }
+                        .ifEmpty { "Exercise ${index + 1}" }
                     ExerciseRow(
                         index = index + 1,
-                        exerciseName = ex?.name ?: "Exercise",
+                        exerciseName = exerciseName,
                         sets = we.sets,
                         reps = we.reps,
                         targetMuscle = ex?.targetMuscleGroup ?: ""
