@@ -23,6 +23,7 @@ android {
         }
     }
 
+    // Signed Apk
     signingConfigs {
         create("release") {
             storeFile = file("${System.getProperty("user.home")}/mova-release.jks")
