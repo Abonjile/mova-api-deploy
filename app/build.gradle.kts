@@ -24,8 +24,19 @@ android {
         }
     }
 
+    // Signed Apk
+    signingConfigs {
+        create("release") {
+            storeFile = file("${System.getProperty("user.home")}/mova-release.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = "mova"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

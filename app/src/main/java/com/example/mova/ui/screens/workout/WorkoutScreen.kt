@@ -35,6 +35,7 @@ import com.example.mova.data.models.Exercise
 import com.example.mova.data.models.Workout
 import com.example.mova.data.repository.WorkoutRepository
 import androidx.hilt.navigation.compose.hiltViewModel
+import android.util.Log
 
 // WorkoutScreen is the main dashboard for the workout feature.
 // Loads system workouts, user-created workouts, and recent workouts.
@@ -45,9 +46,12 @@ fun WorkoutScreen(
     modifier: Modifier = Modifier,
     onWorkoutClick: (String) -> Unit = {},
     onAddClick: () -> Unit = {},
-    repository: WorkoutRepository = WorkoutRepository(),
     viewModel: WorkoutViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    // Pass context to the repository!
+    val repository = remember { WorkoutRepository(context) }
+
     // ── Data state ──
     var systemWorkouts by remember { mutableStateOf<List<Workout>>(emptyList()) }
     var userWorkouts by remember { mutableStateOf<List<Workout>>(emptyList()) }
@@ -63,7 +67,6 @@ fun WorkoutScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    val context = LocalContext.current
     val recentStore = remember { RecentWorkoutsStore(context) }
 
     // Real user id from SessionManager, via the ViewModel
@@ -74,21 +77,43 @@ fun WorkoutScreen(
         val uid = userId ?: "test_user_123"
         try {
             isLoading = true
-            systemWorkouts = repository.getSystemWorkouts()
-            userWorkouts = repository.getUserWorkouts(uid)
-            customWorkouts = repository.getCustomWorkouts(uid)
-            allExercises = repository.getAllExercises()
+
+            // 1. Try to fetch from API. If it fails, the repository will fall back to RoomDB.
+            try {
+                systemWorkouts = repository.getSystemWorkouts()
+            } catch (e: Exception) {
+                Log.e("WorkoutScreen", "Network failed, fetching system workouts from cache")
+                // If the repository fails completely, we just leave it empty and let the UI handle it
+            }
+
+            try {
+                userWorkouts = repository.getUserWorkouts(uid)
+            } catch (e: Exception) {}
+
+            try {
+                customWorkouts = repository.getCustomWorkouts(uid)
+            } catch (e: Exception) {}
+
+            try {
+                allExercises = repository.getAllExercises()
+            } catch (e: Exception) {}
 
             // Resolve recent IDs into actual workout objects
             val recentIds = recentStore.getRecentIds()
-            val allAvailable = systemWorkouts + customWorkouts
+            val allAvailable = (systemWorkouts + userWorkouts + customWorkouts).distinctBy { it.workoutId }
             recentWorkouts = recentIds.mapNotNull { id ->
                 allAvailable.firstOrNull { it.workoutId == id }
             }
 
-            errorMessage = null
+            // Only show an error if we literally have nothing to show
+            if (systemWorkouts.isEmpty() && userWorkouts.isEmpty() && customWorkouts.isEmpty()) {
+                errorMessage = "Could not load workouts. Check your connection."
+            } else {
+                errorMessage = null
+            }
+
         } catch (e: Exception) {
-            errorMessage = "Could not load workouts: ${e.message}"
+            errorMessage = "An unexpected error occurred."
         } finally {
             isLoading = false
         }
