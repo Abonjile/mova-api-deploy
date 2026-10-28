@@ -2,8 +2,9 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -96,13 +97,14 @@ dependencies {
 
     // Hilt - Dependency Injection
     implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-compiler:2.48")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
+    ksp("com.google.dagger:hilt-compiler:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Room Database (Offline Sync)
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
 
     // Retrofit (REST API)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -114,6 +116,7 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
     // Confetti Dependency
     implementation("nl.dionsegijn:konfetti-compose:2.0.4")
@@ -123,6 +126,19 @@ dependencies {
 
     // DataStore (Settings)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Firebase BoM (Manages versions)
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+
+    // Firebase Auth
+    implementation("com.google.firebase:firebase-auth")
+
+    // Google Play Services for Credential Manager
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+
+    // Credential Manager (for the modern Google Sign-In flow)
+    implementation("androidx.credentials:credentials:1.2.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.2.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

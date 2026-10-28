@@ -1,6 +1,9 @@
 package com.example.mova.data.repository
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.tasks.await
 import com.example.mova.data.local.MovaDatabase
 import com.example.mova.data.models.AuthRequest
 import com.example.mova.data.models.AuthResponse
@@ -108,9 +111,54 @@ class AuthRepository @Inject constructor(
     /**
      * Sign in with a Google ID token (SSO).
      */
-    suspend fun signInWithGoogle(idToken: String): Result<AuthResponse> {
-        Log.d(TAG, "Google SSO not implemented yet (token length=${idToken.length})")
-        return Result.failure(NotImplementedError("Google SSO not implemented yet"))
+    suspend fun signInWithGoogleToBackend(idToken: String): Result<AuthResponse> {
+        return try {
+            Log.d(TAG, "Authenticating with Firebase...")
+
+            // 1. Authenticate with Firebase
+            val credential = GoogleAuthProvider.getCredential(idToken, null)
+            val authResult = FirebaseAuth.getInstance().signInWithCredential(credential).await()
+
+            val firebaseUser = authResult.user ?: throw Exception("Firebase user is null")
+            val email = firebaseUser.email ?: throw Exception("Email is null")
+            val fullName = firebaseUser.displayName ?: "Mova User"
+            val uid = firebaseUser.uid // App uses Firebase UID as the SSO ID
+
+            Log.d(TAG, "Firebase Auth Success: $email")
+
+            // 2. Try to Log in to the Backend first
+            try {
+                val loginRequest = AuthRequest(
+                    email = email,
+                    ssoProvider = "GOOGLE",
+                    ssoProviderId = uid
+                )
+                // If this succeeds, it returns the AuthResponse directly
+                val loginResponse = api.login(loginRequest)
+                Log.d(TAG, "Backend Login Success: ${loginResponse.message}")
+                return Result.success(loginResponse)
+
+            } catch (loginException: Exception) {
+                // If login fails, app will try registering
+                Log.d(TAG, "Backend Login failed (likely new user). Registering...")
+
+                val registerRequest = AuthRequest(
+                    fullName = fullName,
+                    email = email,
+                    ssoProvider = "GOOGLE",
+                    ssoProviderId = uid
+                )
+
+                // If this fails, it will throw an exception caught by the outer try-catch
+                val registerResponse = api.register(registerRequest)
+                Log.d(TAG, "Backend Register Success: ${registerResponse.message}")
+                Result.success(registerResponse)
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Google SSO failed: ${e.message}", e)
+            Result.failure(e)
+        }
     }
 
     /**
