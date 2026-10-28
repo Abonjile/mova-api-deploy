@@ -58,3 +58,12 @@ data class MilestoneBadgeDto(
     val subtitle: String,
     val isUnlocked: Boolean
 )
+data class ProgramDto(
+    val id: String,
+    val title: String,
+    val description: String,
+    val durationDays: Int,
+    val difficulty: String,
+    val joined: Boolean,
+    val completed: Boolean
+)
