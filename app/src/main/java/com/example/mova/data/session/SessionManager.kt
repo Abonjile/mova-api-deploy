@@ -38,6 +38,8 @@ class SessionManager @Inject constructor(
     companion object {
         private const val TAG = "SessionManager"
         private val KEY_USER_ID = stringPreferencesKey("user_id")
+        private val KEY_BIOMETRIC_USER_ID = stringPreferencesKey("biometric_user_id")
+        private val KEY_BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
         private val KEY_ONBOARDED = booleanPreferencesKey("onboarding_complete")
         private val KEY_DARK_MODE = booleanPreferencesKey("dark_mode")
         private val KEY_LARGE_TEXT = booleanPreferencesKey("large_text")
@@ -91,9 +93,12 @@ class SessionManager @Inject constructor(
      * Clears the session. Call this on logout.
      */
     suspend fun clear() {
-        Log.d(TAG, "Session cleared")
+        Log.d(TAG, "Session cleared (preserving device preferences)")
         context.sessionDataStore.edit { prefs ->
-            prefs.clear() }
+            // Only clear the user session data, keep biometric/dark mode prefs
+            prefs.remove(KEY_USER_ID)
+            prefs.remove(KEY_ONBOARDED)
+        }
     }
 
     /**
@@ -128,6 +133,27 @@ class SessionManager @Inject constructor(
 
             Log.d(TAG, "Prefs loaded -> dark: ${_darkMode.value}, largeText: ${_largeText.value}, highContrast: ${_highContrast.value}")
         }
+    }
+
+    suspend fun setBiometricEnabled(enabled: Boolean) {
+        context.sessionDataStore.edit { prefs ->
+            prefs[KEY_BIOMETRIC_ENABLED] = enabled
+            if (enabled) {
+                // Save the current user ID specifically for biometric login
+                prefs[KEY_BIOMETRIC_USER_ID] = prefs[KEY_USER_ID] ?: ""
+            } else {
+                // If turning it off, clear the biometric ID
+                prefs.remove(KEY_BIOMETRIC_USER_ID)
+            }
+        }
+    }
+
+    suspend fun getBiometricUserId(): String? {
+        return context.sessionDataStore.data.first()[KEY_BIOMETRIC_USER_ID]
+    }
+
+    suspend fun isBiometricEnabled(): Boolean {
+        return context.sessionDataStore.data.first()[KEY_BIOMETRIC_ENABLED] ?: false
     }
 
     suspend fun setDarkMode(enabled: Boolean) {

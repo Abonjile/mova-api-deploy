@@ -1,6 +1,13 @@
 package com.example.mova.ui.screens.profile
 
 import android.util.Log
+import android.app.Activity
+import android.content.ContextWrapper
+import android.content.Context
+import android.widget.Toast
+import androidx.fragment.app.FragmentActivity
+import androidx.compose.ui.platform.LocalContext
+import com.example.mova.utils.BiometricHelper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,13 +25,11 @@ import androidx.compose.ui.graphics.Color
 import com.example.mova.ui.theme.MovaBlue
 import com.example.mova.ui.theme.MovaTeal
 import com.example.mova.ui.theme.MovaGray
-import com.example.mova.ui.theme.MovaLightGray
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
-
 
 @Composable
 fun SettingsScreen(
@@ -45,6 +50,10 @@ fun SettingsScreen(
     var biometricAuth by remember(currentUser?.userId) { mutableStateOf(currentUser?.biometricEnabled ?: false) }
     var notificationsEnabled by remember(currentUser?.userId) { mutableStateOf(currentUser?.notificationsEnabled ?: true) }
     var selectedLanguage by remember(currentUser?.userId) { mutableStateOf(currentUser?.language ?: "English") }
+
+    // Context for Biometrics
+    val context = LocalContext.current
+    val activity = context.findActivity() as? FragmentActivity
 
     // Supported South African languages (from design doc)
     val languages = listOf(
@@ -169,10 +178,37 @@ fun SettingsScreen(
                         title = "Biometric Authentication",
                         subtitle = "Use fingerprint or face ID to log in",
                         checked = biometricAuth,
-                        onCheckedChange = {
-                            biometricAuth = it
-                            Log.d("SettingsScreen", "Biometric toggled: $it")
-                            // TODO: Enable/disable BiometricPrompt
+                        onCheckedChange = { isChecked ->
+                            if (isChecked) {
+                                // Require biometric verification to enable
+                                if (activity != null && BiometricHelper.canAuthenticate(context)) {
+                                    BiometricHelper.showPrompt(
+                                        activity = activity,
+                                        title = "Enable Biometrics",
+                                        subtitle = "Verify your identity to enable biometric login",
+                                        onSuccess = {
+                                            biometricAuth = true
+                                            viewModel.setBiometricPreference(true)
+                                            Log.d("SettingsScreen", "Biometric toggled ON")
+                                        },
+                                        onError = { error ->
+                                            Toast.makeText(context, error, Toast.LENGTH_SHORT)
+                                                .show()
+                                        }
+                                    )
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Biometric authentication not available on this device",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            } else {
+                                // Disable
+                                biometricAuth = false
+                                viewModel.setBiometricPreference(false)
+                                Log.d("SettingsScreen", "Biometric toggled OFF")
+                            }
                         }
                     )
                 }
@@ -327,4 +363,14 @@ fun SettingToggleRow(
             )
         )
     }
+}
+
+// Safely find the Activity from the Context
+fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
 }

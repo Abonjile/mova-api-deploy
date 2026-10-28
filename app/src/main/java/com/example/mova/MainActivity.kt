@@ -1,7 +1,7 @@
 package com.example.mova
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -20,7 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     @Inject lateinit var sessionManager: SessionManager
     @Inject lateinit var database: com.example.mova.data.local.MovaDatabase

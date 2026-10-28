@@ -1,6 +1,9 @@
 package com.example.mova.ui.screens.authentication
 
 import android.util.Log
+import android.app.Activity
+import android.content.ContextWrapper
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,12 +25,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.GetCredentialException
 import androidx.compose.ui.platform.LocalContext
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.example.mova.ui.theme.*
 import kotlinx.coroutines.launch
+import android.widget.Toast
+import androidx.fragment.app.FragmentActivity
+import com.example.mova.utils.BiometricHelper
 
 /**
  * Login screen — allows a registered user to sign in.
@@ -58,6 +63,24 @@ fun LoginScreen(
     val scope = rememberCoroutineScope()
 
     val webClientId = "919226330565-0o5mq0sbug1btm74q7rde3rvnr54934r.apps.googleusercontent.com"
+
+    val activity = context.findActivity() as? FragmentActivity
+
+    val launchBiometric: () -> Unit = {
+        if (activity != null && BiometricHelper.canAuthenticate(context)) {
+            BiometricHelper.showPrompt(
+                activity = activity,
+                onSuccess = {
+                    viewModel.signInWithBiometric()
+                },
+                onError = { error ->
+                    Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                }
+            )
+        } else {
+            Toast.makeText(context, "Biometric authentication not set up on this device.", Toast.LENGTH_LONG).show()
+        }
+    }
 
     val launchGoogleSignIn: () -> Unit = {
         val googleIdOption = GetGoogleIdOption.Builder()
@@ -219,7 +242,7 @@ fun LoginScreen(
             SocialLoginRow(
                 onGoogleClick = launchGoogleSignIn,
                 onAppleClick = { viewModel.signInWithApple() },
-                onBiometricClick = { viewModel.signInWithBiometric() }
+                onBiometricClick = launchBiometric
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -250,4 +273,14 @@ private fun validateLogin(email: String, password: String): Map<String, String> 
 
     if (password.isBlank()) errors["password"] = "Password is required"
     return errors
+}
+
+// Safely find the Activity from the Context
+fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
 }
