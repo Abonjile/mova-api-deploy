@@ -1,5 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">MOVA</string>
+
+    <!-- Language screen -->
+    <string name="language_screen_title">Izilungiselelo Zolimi</string>
+    <string name="language_welcome">Siyakwamukela kuhlelo lwethu lwezilimi eziningi.</string>
+    <string name="language_description">Khetha ulimi oluthandayo.</string>
+    <string name="language_choose_label">Khetha ulimi:</string>
+    <string name="language_english">IsiNgisi</string>
+    <string name="language_zulu">isiZulu</string>
+    <string name="language_sesotho">IsiSesotho</string>
+    <string name="language_use_device">Sebenzisa ulimi lwedivayisi</string>
+    <string name="language_current_label">Ulimi lwamanje: %1$s</string>
+
+    <!-- Shared -->
+    <string name="period_weekly">Ngesonto</string>
+    <string name="period_monthly">Ngenyanga</string>
+    <string name="network_error">Awukwazi ukufinyelela kuseva. Hlola ukuxhumana kwakho.</string>
+    <string name="action_save">Gcina</string>
+    <string name="action_cancel">Khansela</string>
+
+    <!-- Challenges -->
+    <string name="challenges_title">Izinselele</string>
+    <string name="challenges_target_muscles">Amaqembu emisipha ahlosiwe</string>
+    <string name="challenges_active_programs">Izinhlelo ezisebenzayo</string>
+    <string name="challenges_none_joined">Awujoyinanga noma yiziphi izinselele okwamanje.</string>
+    <string name="challenges_progress_days">%1$d/%2$d izinsuku</string>
+    <string name="challenges_overall_progress">Inqubekela phambili yonke</string>
+    <string name="challenges_check_in">Ngena namuhla</string>
+    <string name="challenges_available">Izinhlelo ezitholakalayo</string>
+    <string name="challenges_join">Joyina</string>
+    <string name="challenges_duration_days">izinsuku ezingu-%1$d</string>
+    <string name="challenges_completed">Izinhlelo eziqediwe</string>
+
+    <!-- Analytics -->
+    <string name="analytics_title">Ukuhlaziya</string>
+    <string name="analytics_goal_setting">Ukusetha injongo</string>
+    <string name="analytics_active_goal">%1$s Injongo Esebenzayo</string>
+    <string name="analytics_no_goal">Akukho njongo esethiwe</string>
+    <string name="analytics_edit">HLELA</string>
+    <string name="analytics_current_status">Isimo samanje</string>
+    <string name="analytics_calories_status">%1$d / %2$d kal</string>
+    <string name="analytics_performance_trends">Imikhuba yokusebenza</string>
+    <string name="analytics_calories_trend">Umkhuba wamakhalori: %1$s</string>
+    <string name="analytics_no_trend">Akukho datha yomkhuba etholakalayo</string>
+    <string name="analytics_training_volume">Inani lokuqeqesha (Imizuzu)</string>
+    <string name="analytics_muscle_distribution">Ukusatshalaliswa kwamaqembu emisipha</string>
+    <string name="analytics_core">Umgogodla nesisu (%1$d%%)</string>
+    <string name="analytics_upper">Umzimba wangenhla (%1$d%%)</string>
+    <string name="analytics_lower">Umzimba wangaphansi (%1$d%%)</string>
+    <string name="analytics_edit_dialog">Hlela injongo esebenzayo</string>
+    <string name="analytics_goal_title">Isihloko senjongo</string>
+    <string name="analytics_target_calories">Amakhalori ahlosiwe</string>
+
+    <!-- Rewards -->
     <string name="rewards_title">Imivuzo</string>
     <string name="day_streak_format">Izinsuku ezingu-%d zokulandelana!</string>
     <string name="consistency_level_format">Izinga lokungaguquguquki: %d%% ngesonto</string>
@@ -9,4 +64,12 @@
     <string name="claim">Funa</string>
     <string name="milestone_badges">Izimpawu Zezikhumbuzo</string>
     <string name="no_milestone_badges">Azikho izimpawu zezikhumbuzo ezibhalisiwe.</string>
+
+    <!-- Error -->
+    <string name="error_load">Kuhlulekile ukulayisha izinselele zakho. Zama futhi.</string>
+    <string name="error_action">Kukhona okungahambanga kahle. Zama futhi.</string>
+    <string name="error_already_done">Sekuqoshiwe namuhla.</string>
+    <string name="error_load_analytics">Kuhlulekile ukulayisha ukuhlaziya. Zama futhi.</string>
+    <string name="error_save_goal">Kuhlulekile ukugcina injongo yakho. Zama futhi.</string>
+    <string name="error_invalid_goal">Injongo idinga isihloko nenani lamakhalori elingaphezu kuka-0.</string>
 </resources>
