@@ -1,7 +1,10 @@
 /**
- * AnalyticsViewModel
- * Loads analytics for the selected period and saves goal edits. The current period is
- * tracked here, so a goal update always targets the period the user is looking at.
+ * =====================================================================================
+ * VIEWMODEL: AnalyticsViewModel
+ * =====================================================================================
+ * Loads analytics for the selected period and saves goal changes. Errors are sent as an
+ * enum, so the screen can translate them.
+ * =====================================================================================
  */
 package com.example.mova.ui.screens.analytics
 
@@ -15,6 +18,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
+
+/** Problems the screen can show. Each one maps to a string in strings.xml. */
+enum class AnalyticsError { NETWORK, LOAD_FAILED, SAVE_FAILED, INVALID_GOAL }
 
 class AnalyticsViewModel : ViewModel() {
 
@@ -26,47 +33,44 @@ class AnalyticsViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // The period the screen is showing. Updates and reloads read this value, so they can't
-    // accidentally target a different period.
+    // The period on screen. Goal saves read this, so they always hit the right period.
     private val _currentPeriod = MutableStateFlow("Weekly")
     val currentPeriod: StateFlow<String> = _currentPeriod.asStateFlow()
 
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+    private val _error = MutableStateFlow<AnalyticsError?>(null)
+    val error: StateFlow<AnalyticsError?> = _error.asStateFlow()
 
-    /** Loads analytics for a period, and records that period as the current one. */
     fun loadAnalytics(userId: String, period: String = "Weekly") {
         if (userId.isBlank()) return
         _currentPeriod.value = period
         viewModelScope.launch {
             _isLoading.value = true
-            _errorMessage.value = null
+            _error.value = null
             try {
                 val response = api.getAnalytics(userId, period)
                 val body = response.body()
                 if (response.isSuccessful && body != null) {
                     _analyticsData.value = body
                 } else {
-                    _errorMessage.value = "Couldn't load analytics (HTTP ${response.code()})"
+                    _error.value = AnalyticsError.LOAD_FAILED
                 }
+            } catch (e: IOException) {
+                _error.value = AnalyticsError.NETWORK
             } catch (e: Exception) {
                 Log.e(TAG, "Analytics fetch failed", e)
-                _errorMessage.value = "Can't reach the server."
+                _error.value = AnalyticsError.LOAD_FAILED
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
-    /**
-     * Saves the goal for the current period, then reloads. Validation runs before the request
-     * is sent, so the user gets an immediate message instead of waiting on a 400 response.
-     */
+    /** Saves the goal for the period on screen, then reloads so the card shows saved values. */
     fun updateFullGoal(userId: String, goalTitle: String, targetCalories: Int) {
         if (userId.isBlank()) return
         val title = goalTitle.trim()
         if (title.isEmpty() || targetCalories <= 0) {
-            _errorMessage.value = "A goal needs a title and a calorie target above 0."
+            _error.value = AnalyticsError.INVALID_GOAL
             return
         }
 
@@ -77,14 +81,15 @@ class AnalyticsViewModel : ViewModel() {
                     userId, period, GoalUpdateRequest(title, targetCalories)
                 )
                 if (response.isSuccessful) {
-                    // Reload, so the card shows the saved values rather than what was typed.
                     loadAnalytics(userId, period)
                 } else {
-                    _errorMessage.value = "Couldn't save goal (HTTP ${response.code()})"
+                    _error.value = AnalyticsError.SAVE_FAILED
                 }
+            } catch (e: IOException) {
+                _error.value = AnalyticsError.NETWORK
             } catch (e: Exception) {
                 Log.e(TAG, "Goal update failed", e)
-                _errorMessage.value = "Can't reach the server."
+                _error.value = AnalyticsError.SAVE_FAILED
             }
         }
     }
