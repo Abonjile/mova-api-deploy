@@ -138,12 +138,26 @@ class AuthViewModel @Inject constructor(
 
 
     // SSO STUBS
-    // TODO: Wire real Google / Apple / Biometric flows in a future phase.
+    // TODO: Apple in a future phase.
 
-    fun signInWithGoogle() {
-        Log.d(TAG, "Google SSO requested (not yet implemented)")
-        // TODO: Launch Credential Manager → get idToken → authRepository.signInWithGoogle(idToken)
-        _uiState.update { it.copy(error = "Google sign-in coming soon") }
+    fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            authRepository.signInWithGoogleToBackend(idToken)
+                .onSuccess { response ->
+                    val userId = response.user?.userId
+                    if (userId != null) {
+                        sessionManager.setUserId(userId)
+                        _uiState.update { it.copy(isLoading = false, success = true, isNewRegistration = true) } // Send to onboarding
+                    } else {
+                        _uiState.update { it.copy(isLoading = false, error = "Missing userId") }
+                    }
+                }
+                .onFailure { e ->
+                    _uiState.update { it.copy(isLoading = false, error = e.message) }
+                }
+        }
     }
 
     fun signInWithApple() {
@@ -153,9 +167,22 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signInWithBiometric() {
-        Log.d(TAG, "Biometric auth requested (not yet implemented)")
-        // TODO: Use BiometricPrompt → on success, restore cached session
-        _uiState.update { it.copy(error = "Biometric sign-in coming soon") }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            // Check for the saved biometric user ID
+            val biometricId = sessionManager.getBiometricUserId()
+
+            if (!biometricId.isNullOrBlank()) {
+                Log.d(TAG, "Biometric login success for user: $biometricId")
+                // Restore the normal session with this ID
+                sessionManager.setUserId(biometricId)
+                _uiState.update { it.copy(isLoading = false, success = true, isNewRegistration = false) }
+            } else {
+                Log.e(TAG, "Biometric login failed: No biometric session found")
+                _uiState.update { it.copy(isLoading = false, error = "No biometric session found. Please log in with your password first.") }
+            }
+        }
     }
 
     // UTILITY

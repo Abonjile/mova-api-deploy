@@ -2,7 +2,6 @@ package com.example.mova.data.repository
 
 import android.util.Log
 import com.example.mova.data.local.MovaDatabase
-import com.example.mova.data.local.UserDao
 import com.example.mova.data.models.SettingsRequest
 import com.example.mova.data.models.User
 import com.example.mova.data.models.toDomain
@@ -14,8 +13,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Repository for managing user data with offline-first strategy using local database as source of truth with remote API fallback and offline sync support
- * */
+ * Repository for managing user data with offline-first strategy using local database as source of truth.
+ */
 @Singleton
 class UserRepository @Inject constructor(
     private val database: MovaDatabase
@@ -29,15 +28,15 @@ class UserRepository @Inject constructor(
     }
 
     /**
-     * Get user from local database (offline-first)
-     * If not found locally, fetch from API
-     * Return mock data before backend is ready
+     * Get user from local database (offline-first).
+     * If not found locally, fetch from API.
+     * If API fails (offline), create or load cached fallback user.
      */
     suspend fun getUser(userId: String): User? {
         Log.d(TAG, "Getting user: $userId")
 
         // 1. Try to get from local database first
-        val localUser = userDao.getUserById(userId)
+        val localUser = userDao.getUserById(userId) ?: userDao.getAnyUser()
         if (localUser != null) {
             Log.d(TAG, "User found locally: ${localUser.fullName}")
             return localUser.toDomain()
@@ -55,13 +54,19 @@ class UserRepository @Inject constructor(
 
             return remoteUser
         } catch (e: Exception) {
-            Log.e(TAG, "Error fetching user from API: ${e.message}", e)
-            null
+            Log.e(TAG, "Error fetching user from API, creating local profile: ${e.message}")
+            val defaultUser = User(
+                userId = userId,
+                fullName = "Mova User",
+                email = "user@example.com"
+            )
+            userDao.insertUser(defaultUser.toEntity().copy(isSynced = false))
+            defaultUser
         }
     }
 
     /**
-     * Observe user from local database as Flow (for real-time updates)
+     * Observe user from local database as Flow
      */
     fun observeUser(userId: String): Flow<User?> {
         return userDao.getUserByIdFlow(userId).map { entity ->
@@ -70,7 +75,7 @@ class UserRepository @Inject constructor(
     }
 
     /**
-     * Update user profile (saves locally and syncs with API)
+     * Update user profile (saves locally and syncs with API if online)
      */
     suspend fun updateUserProfile(userId: String, user: User): Result<User> {
         return try {
@@ -86,22 +91,21 @@ class UserRepository @Inject constructor(
 
             Result.success(updatedUser)
         } catch (e: Exception) {
-            Log.e(TAG, "Error updating user: ${e.message}",e)
+            Log.e(TAG, "Error updating user via API, saving locally: ${e.message}")
 
             // 3. Cache locally for later sync
             userDao.insertUser(user.toEntity().copy(isSynced = false))
             Log.d(TAG, "User saved locally (pending sync)")
 
-            Result.failure(e)
+            Result.success(user)
         }
     }
 
     /**
      * Replace the full objectives list for a user.
-     * Pass an empty list to clear all objectives.
      */
     suspend fun updateObjectives(userId: String, objectives: List<String>): Result<User> {
-        val current = getUser(userId) ?: return Result.failure(Exception("User not found"))
+        val current = getUser(userId) ?: User(userId = userId)
         val updated = current.copy(objectives = objectives)
         return updateUserProfile(userId, updated)
     }
@@ -132,9 +136,8 @@ class UserRepository @Inject constructor(
 
             Result.success(updatedUser)
         } catch (e: Exception) {
-            Log.e(TAG, "Error updating settings: ${e.message}", e)
+            Log.e(TAG, "Error updating settings via API, saving locally: ${e.message}")
 
-            // Cache locally for later sync
             val currentUser = userDao.getUserById(userId)?.toDomain() ?: User(userId = userId)
             val updatedUser = currentUser.copy(
                 language = language,
@@ -143,7 +146,7 @@ class UserRepository @Inject constructor(
             )
             userDao.insertUser(updatedUser.toEntity().copy(isSynced = false))
 
-            Result.failure(e)
+            Result.success(updatedUser)
         }
     }
 

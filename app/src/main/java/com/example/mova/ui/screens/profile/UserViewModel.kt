@@ -179,6 +179,13 @@ class UserViewModel @Inject constructor(
         }
     }
 
+    // Persist biometric preference locally via SessionManager
+    fun setBiometricPreference(enabled: Boolean) {
+        viewModelScope.launch {
+            sessionManager.setBiometricEnabled(enabled)
+        }
+    }
+
     // Persist Large text preference via SessionManager
     fun setLargeText(enabled: Boolean) {
         viewModelScope.launch {

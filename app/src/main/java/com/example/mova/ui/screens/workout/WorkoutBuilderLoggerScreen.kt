@@ -60,14 +60,14 @@ private const val SECONDS_PER_REP = 3.0
 @Composable
 fun WorkoutBuilderLoggerScreen(
     onBack: () -> Unit = {},
-    repository: WorkoutRepository = WorkoutRepository(),
     viewModel: WorkoutViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val repository = remember(context) { WorkoutRepository(context) }
     val userIdState by viewModel.userId.collectAsState()
     val userId = userIdState ?: "test_user_123"   // fallback
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
 
     // Form state
     var workoutName by remember { mutableStateOf("") }
@@ -93,7 +93,7 @@ fun WorkoutBuilderLoggerScreen(
                     context.applicationContext,
                     MovaDatabase::class.java,
                     "mova_database"
-                ).build()
+                ).fallbackToDestructiveMigration().build()
             )
             val user = userRepo.getUser(userId)
             userWeight = user?.weight?.toDouble()?.takeIf { it > 0 } ?: 70.0
