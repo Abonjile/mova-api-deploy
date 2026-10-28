@@ -6,25 +6,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * =====================================================================================
  * VIEWMODEL: LanguageViewModel
- * =====================================================================================
- * Manages the current language selection state and triggers runtime locale updates.
- * =====================================================================================
+ * Holds which language the radio buttons show as selected, and applies a choice.
+ * The actual translation happens in the resources, not here.
  */
 class LanguageViewModel : ViewModel() {
 
-    private val _currentLanguage = MutableStateFlow(LanguageManager.getCurrentLocaleTag())
-    val currentLanguage: StateFlow<String> = _currentLanguage.asStateFlow()
+    private val _selected = MutableStateFlow(LanguageManager.currentSelection())
+    val selected: StateFlow<String> = _selected.asStateFlow()
 
-    /**
-     * Updates the application language and persists state via AppCompatDelegate.
-     *
-     * @param languageCode The target language code ("en", "zu", or "st").
-     */
-    fun changeLanguage(languageCode: String) {
-        if (languageCode.isBlank()) return
-        LanguageManager.setLocale(languageCode)
-        _currentLanguage.value = languageCode
+    /** Applies the chosen language. Android then recreates the activity with the new resources. */
+    fun select(tag: String) {
+        if (tag == _selected.value) return
+        _selected.value = tag
+        LanguageManager.setLanguage(tag)
     }
 }
