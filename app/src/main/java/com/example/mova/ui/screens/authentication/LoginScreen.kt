@@ -1,6 +1,9 @@
 package com.example.mova.ui.screens.authentication
 
 import android.util.Log
+import android.app.Activity
+import android.content.ContextWrapper
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -61,10 +64,10 @@ fun LoginScreen(
 
     val webClientId = "919226330565-0o5mq0sbug1btm74q7rde3rvnr54934r.apps.googleusercontent.com"
 
-    val activity = context as FragmentActivity
+    val activity = context.findActivity() as? FragmentActivity
 
     val launchBiometric: () -> Unit = {
-        if (BiometricHelper.canAuthenticate(context)) {
+        if (activity != null && BiometricHelper.canAuthenticate(context)) {
             BiometricHelper.showPrompt(
                 activity = activity,
                 onSuccess = {
@@ -270,4 +273,14 @@ private fun validateLogin(email: String, password: String): Map<String, String> 
 
     if (password.isBlank()) errors["password"] = "Password is required"
     return errors
+}
+
+// Safely find the Activity from the Context
+fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
 }

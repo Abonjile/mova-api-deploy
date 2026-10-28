@@ -170,14 +170,17 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            val userId = sessionManager.getUserId()
-            if (userId != null) {
-                Log.d(TAG, "Biometric login success for user: $userId")
-                // User is already logged in locally, just navigate
+            // Check for the saved biometric user ID
+            val biometricId = sessionManager.getBiometricUserId()
+
+            if (!biometricId.isNullOrBlank()) {
+                Log.d(TAG, "Biometric login success for user: $biometricId")
+                // Restore the normal session with this ID
+                sessionManager.setUserId(biometricId)
                 _uiState.update { it.copy(isLoading = false, success = true, isNewRegistration = false) }
             } else {
-                Log.e(TAG, "Biometric login failed: No session found")
-                _uiState.update { it.copy(isLoading = false, error = "No previous session found. Please log in with your password first.") }
+                Log.e(TAG, "Biometric login failed: No biometric session found")
+                _uiState.update { it.copy(isLoading = false, error = "No biometric session found. Please log in with your password first.") }
             }
         }
     }
