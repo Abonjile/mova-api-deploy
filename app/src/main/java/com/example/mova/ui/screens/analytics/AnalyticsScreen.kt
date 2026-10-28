@@ -1,7 +1,10 @@
 /**
+ * =====================================================================================
  * COMPOSABLE: AnalyticsScreen
- * Shows the goal, calorie progress, trend and volume charts, and the muscle group donut.
- * Everything is drawn from the server's AnalyticsDto. The period switch reloads the data.
+ * =====================================================================================
+ * Goal setting, calorie progress, trend and volume charts, and the muscle-group donut.
+ * Every label comes from strings.xml, so the whole screen translates.
+ * =====================================================================================
  */
 package com.example.mova.ui.screens.analytics
 
@@ -23,63 +26,70 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mova.R
 import java.util.Calendar
-import java.util.Locale
 
 /**
  * X-axis labels for the trend charts.
- *
- * Weekly: single-letter weekday names for the last seven days, ending today.
- * Monthly: four weekly buckets, oldest first.
- *
- * Uses java.util.Calendar rather than java.time, because java.time needs API 26
- * and this app's minSdk is 24.
+ * Weekly shows the first letter of each of the last seven weekdays, ending today.
+ * Monthly shows four weeks, oldest first. Uses java.util.Calendar, which works on API 24.
  */
-private fun trendLabels(period: String): List<String> =
-    if (period == "Weekly") {
-        val locale = Locale.getDefault()
-        (6 downTo 0).map { daysAgo ->
-            val day = Calendar.getInstance().apply {
-                add(Calendar.DAY_OF_YEAR, -daysAgo)
-            }
-            // SHORT gives "Mon", "Tue" and so on. Take the first letter for the chart axis.
-            val short = day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, locale) ?: ""
-            short.take(1)
-        }
-    } else {
-        listOf("Wk 1", "Wk 2", "Wk 3", "Wk 4")
+@Composable
+private fun trendLabels(period: String): List<String> {
+    if (period != "Weekly") {
+        return listOf("Wk 1", "Wk 2", "Wk 3", "Wk 4")
     }
+    val locale = java.util.Locale.getDefault()
+    return (6 downTo 0).map { daysAgo ->
+        val day = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -daysAgo) }
+        (day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, locale) ?: "").take(1)
+    }
+}
+
+/** The translated name of a period: "Weekly" or "Monthly". */
+@Composable
+private fun periodName(period: String): String =
+    if (period == "Weekly") stringResource(R.string.period_weekly)
+    else stringResource(R.string.period_monthly)
+
+/** Turns an error from the ViewModel into the matching translated message. */
+@Composable
+private fun analyticsErrorText(error: AnalyticsError): String = when (error) {
+    AnalyticsError.NETWORK -> stringResource(R.string.network_error)
+    AnalyticsError.LOAD_FAILED -> stringResource(R.string.error_load_analytics)
+    AnalyticsError.SAVE_FAILED -> stringResource(R.string.error_save_goal)
+    AnalyticsError.INVALID_GOAL -> stringResource(R.string.error_invalid_goal)
+}
 
 @Composable
 fun AnalyticsScreen(
     userId: String,
     viewModel: AnalyticsViewModel = viewModel()
 ) {
-    // Local UI state. Only the segmented control and the dialog use these.
     var selectedPeriod by remember { mutableStateOf("Weekly") }
     var showEditDialog by remember { mutableStateOf(false) }
 
     val analyticsData by viewModel.analyticsData.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    val error by viewModel.error.collectAsState()
 
-    // Edit-dialog fields. They are reset from the saved goal each time the dialog opens.
+    // Dialog fields, filled from the saved goal each time the dialog opens.
     var inputGoalTitle by remember { mutableStateOf("") }
     var inputTargetCalories by remember { mutableStateOf("") }
 
-    // Reloads whenever the user or the period changes.
     LaunchedEffect(userId, selectedPeriod) {
         if (userId.isNotBlank()) {
             viewModel.loadAnalytics(userId, selectedPeriod)
         }
     }
 
-    // Shared by the trend charts so their labels always match.
     val labels = trendLabels(selectedPeriod)
+    val currentError = error
 
     Column(
         modifier = Modifier
@@ -88,14 +98,14 @@ fun AnalyticsScreen(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // ---- Top app bar: title and logo ----
+        // ---- Header ----
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Analytics",
+                text = stringResource(R.string.analytics_title),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1A237E)
@@ -111,7 +121,7 @@ fun AnalyticsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ---- Period switcher: Weekly / Monthly ----
+        // ---- Weekly / Monthly switch ----
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -131,7 +141,7 @@ fun AnalyticsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = period,
+                        text = periodName(period),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (isSelected) Color(0xFF1A1C1E) else Color.Gray
@@ -142,16 +152,20 @@ fun AnalyticsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Shows a failed load or failed save. Nothing appears when there is no error.
-        errorMessage?.let { message ->
-            Text(text = message, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+        currentError?.let { problem ->
+            Text(text = analyticsErrorText(problem), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        Text(text = "Goal Setting", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1A237E))
+        Text(
+            text = stringResource(R.string.analytics_goal_setting),
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp,
+            color = Color(0xFF1A237E)
+        )
         Spacer(modifier = Modifier.height(8.dp))
 
-        // ---- Goal card: title, progress bar and the edit button ----
+        // ---- Goal card ----
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -164,20 +178,28 @@ fun AnalyticsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(text = "$selectedPeriod Active Goal", fontSize = 11.sp, color = Color.Gray)
                         Text(
-                            text = analyticsData?.goalTitle ?: "No goal set",
+                            text = stringResource(R.string.analytics_active_goal, periodName(selectedPeriod)),
+                            fontSize = 11.sp,
+                            color = Color.Gray
+                        )
+                        Text(
+                            text = analyticsData?.goalTitle ?: stringResource(R.string.analytics_no_goal),
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
                     }
                     TextButton(onClick = {
-                        // Pre-fill the dialog with the saved goal, falling back to 2000 kcal.
                         inputGoalTitle = analyticsData?.goalTitle ?: ""
                         inputTargetCalories = analyticsData?.targetCalories?.toString() ?: "2000"
                         showEditDialog = true
                     }) {
-                        Text(text = "EDIT", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD9820B))
+                        Text(
+                            text = stringResource(R.string.analytics_edit),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFD9820B)
+                        )
                     }
                 }
 
@@ -185,7 +207,7 @@ fun AnalyticsScreen(
 
                 val burned = analyticsData?.burnedCalories ?: 0
                 val target = analyticsData?.targetCalories ?: 2000
-                // Clamped to 0..1 so the bar never overflows or goes negative.
+                // Keeps the bar between 0 and full, even when the goal is zero or the data is old.
                 val progress = if (target > 0) (burned.toFloat() / target.toFloat()).coerceIn(0f, 1f) else 0f
 
                 LinearProgressIndicator(
@@ -203,9 +225,13 @@ fun AnalyticsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Current Status", fontSize = 11.sp, color = Color.Gray)
                     Text(
-                        text = "$burned / $target cal",
+                        text = stringResource(R.string.analytics_current_status),
+                        fontSize = 11.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = stringResource(R.string.analytics_calories_status, burned, target),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1A1C1E)
@@ -215,10 +241,15 @@ fun AnalyticsScreen(
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-        Text(text = "Performance Trends", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1A237E))
+        Text(
+            text = stringResource(R.string.analytics_performance_trends),
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp,
+            color = Color(0xFF1A237E)
+        )
         Spacer(modifier = Modifier.height(10.dp))
 
-        // ---- Calorie trend line chart ----
+        // ---- Calorie trend (line chart) ----
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -226,7 +257,7 @@ fun AnalyticsScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "$selectedPeriod Calories Trend".uppercase(),
+                    text = stringResource(R.string.analytics_calories_trend, periodName(selectedPeriod)).uppercase(),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Gray
@@ -237,24 +268,25 @@ fun AnalyticsScreen(
                     val points: List<Float> = analyticsData?.calorieTrend ?: emptyList()
                     if (points.isNotEmpty()) {
                         Canvas(modifier = Modifier.fillMaxSize()) {
-                            // The largest point sets the top of the chart. coerceAtLeast(1f)
-                            // avoids dividing by zero when every value is 0.
+                            // coerceAtLeast(1f) prevents dividing by zero when every point is 0.
                             val maxVal = (points.maxOrNull() ?: 1f).coerceAtLeast(1f)
-                            // Spacing between points. coerceAtLeast(1) avoids dividing by zero
-                            // when there is only one point.
                             val widthStep = size.width / (points.size - 1).coerceAtLeast(1)
                             val path = Path()
 
                             points.forEachIndexed { index, fl ->
                                 val x = index * widthStep
-                                // Canvas y grows downward, so flip it: high values sit near the top.
+                                // Canvas y increases downward, so high values are flipped to the top.
                                 val y = size.height * (1f - (fl / maxVal).coerceIn(0f, 1f))
                                 if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
                             }
                             drawPath(path, color = Color(0xFF26A69A), style = Stroke(width = 3.dp.toPx()))
                         }
                     } else {
-                        Text(text = "No trend data available", fontSize = 11.sp, color = Color.Gray)
+                        Text(
+                            text = stringResource(R.string.analytics_no_trend),
+                            fontSize = 11.sp,
+                            color = Color.Gray
+                        )
                     }
                 }
 
@@ -269,7 +301,7 @@ fun AnalyticsScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // ---- Training volume bar chart ----
+        // ---- Training volume (bar chart) ----
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -277,7 +309,7 @@ fun AnalyticsScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Training Volume (Mins)".uppercase(),
+                    text = stringResource(R.string.analytics_training_volume).uppercase(),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Gray
@@ -291,17 +323,15 @@ fun AnalyticsScreen(
                 ) {
                     val volumes: List<Float> = analyticsData?.trainingVolume ?: emptyList()
                     val maxVol = (volumes.maxOrNull() ?: 100f).coerceAtLeast(1f)
-                    if (volumes.isNotEmpty()) {
-                        volumes.forEach { vol ->
-                            // The 0.1 minimum keeps a zero-minute day visible as a small stub.
-                            val heightFraction = (vol / maxVol).coerceIn(0.1f, 1f)
-                            Box(
-                                modifier = Modifier
-                                    .width(if (selectedPeriod == "Weekly") 22.dp else 45.dp)
-                                    .fillMaxHeight(heightFraction)
-                                    .background(Color(0xFFC62828), RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                            )
-                        }
+                    volumes.forEach { vol ->
+                        // The 0.1 minimum keeps a zero-minute day visible as a small stub.
+                        val heightFraction = (vol / maxVol).coerceIn(0.1f, 1f)
+                        Box(
+                            modifier = Modifier
+                                .width(if (selectedPeriod == "Weekly") 22.dp else 45.dp)
+                                .fillMaxHeight(heightFraction)
+                                .background(Color(0xFFC62828), RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                        )
                     }
                 }
 
@@ -324,7 +354,7 @@ fun AnalyticsScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "MUSCLE GROUP DISTRIBUTION",
+                    text = stringResource(R.string.analytics_muscle_distribution).uppercase(),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Gray
@@ -336,18 +366,17 @@ fun AnalyticsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    val dist = analyticsData?.muscleGroupDistribution
+                    val core = dist?.core ?: 0
+                    val upper = dist?.upper ?: 0
+                    val lower = dist?.lower ?: 0
+
                     Box(modifier = Modifier.size(90.dp), contentAlignment = Alignment.Center) {
                         Canvas(modifier = Modifier.fillMaxSize()) {
                             val radius = size.minDimension / 2
                             val center = Offset(size.width / 2, size.height / 2)
 
-                            val dist = analyticsData?.muscleGroupDistribution
-                            val core = dist?.core?.toFloat() ?: 0f
-                            val upper = dist?.upper?.toFloat() ?: 0f
-                            val lower = dist?.lower?.toFloat() ?: 0f
-                            // coerceAtLeast(1f) keeps the division safe when there is no data yet.
-                            val total = (core + upper + lower).coerceAtLeast(1f)
-
+                            val total = (core + upper + lower).toFloat().coerceAtLeast(1f)
                             val slices = listOf(
                                 (core / total) to Color(0xFFAB47BC),
                                 (upper / total) to Color(0xFF26A69A),
@@ -370,20 +399,15 @@ fun AnalyticsScreen(
                                     startAngle += sweep
                                 }
                             }
-                            // A white circle over the middle turns the pie into a donut.
+                            // A white circle in the middle turns the pie into a donut.
                             drawCircle(Color.White, radius = radius * 0.5f, center = center)
                         }
                     }
 
-                    val dist = analyticsData?.muscleGroupDistribution
-                    val coreVal = dist?.core ?: 0
-                    val upperVal = dist?.upper ?: 0
-                    val lowerVal = dist?.lower ?: 0
-
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        AnalyticsLegendItem(Color(0xFFAB47BC), "Core & Abs ($coreVal%)")
-                        AnalyticsLegendItem(Color(0xFF26A69A), "Upper Body ($upperVal%)")
-                        AnalyticsLegendItem(Color(0xFFFFA726), "Lower Body ($lowerVal%)")
+                        AnalyticsLegendItem(Color(0xFFAB47BC), stringResource(R.string.analytics_core, core))
+                        AnalyticsLegendItem(Color(0xFF26A69A), stringResource(R.string.analytics_upper, upper))
+                        AnalyticsLegendItem(Color(0xFFFFA726), stringResource(R.string.analytics_lower, lower))
                     }
                 }
             }
@@ -394,45 +418,42 @@ fun AnalyticsScreen(
     if (showEditDialog) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            title = { Text(text = "Edit Active Goal") },
+            title = { Text(text = stringResource(R.string.analytics_edit_dialog)) },
             text = {
                 Column {
                     OutlinedTextField(
                         value = inputGoalTitle,
                         onValueChange = { inputGoalTitle = it },
-                        label = { Text("Goal Title") }
+                        label = { Text(stringResource(R.string.analytics_goal_title)) }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = inputTargetCalories,
                         onValueChange = { inputTargetCalories = it },
-                        label = { Text("Target Calories") }
+                        label = { Text(stringResource(R.string.analytics_target_calories)) }
                     )
                 }
             },
             confirmButton = {
                 Button(onClick = {
-                    // Falls back to 2000 if the field isn't a number, so a typo doesn't
-                    // silently send 0.
+                    // A value that isn't a number falls back to 2000 rather than sending 0.
                     val targetCals = inputTargetCalories.toIntOrNull() ?: 2000
                     viewModel.updateFullGoal(userId, inputGoalTitle, targetCals)
                     showEditDialog = false
                 }) {
-                    Text("Save")
+                    Text(stringResource(R.string.action_save))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
     }
 }
 
-/**
- * One row in the donut legend: a colored dot followed by the label.
- */
+/** One row of the donut legend: a coloured dot and its label. */
 @Composable
 fun AnalyticsLegendItem(color: Color, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
