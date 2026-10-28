@@ -12,7 +12,20 @@
           "package_name": "com.example.mova"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "919226330565-56b29snkvpvhfqem06kacmcves553n85.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mova",
+            "certificate_hash": "eea1fe26058f08d7e445ba5fb5d7ac42b9629ea0"
+          }
+        },
+        {
+          "client_id": "919226330565-0o5mq0sbug1btm74q7rde3rvnr54934r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAjXiPzSiCsWSGnh0U8JL-fr7VAStEoYvI"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "919226330565-0o5mq0sbug1btm74q7rde3rvnr54934r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
