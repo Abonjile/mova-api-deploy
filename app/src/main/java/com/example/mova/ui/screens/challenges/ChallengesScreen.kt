@@ -2,8 +2,8 @@
  * =====================================================================================
  * COMPOSABLE: ChallengesScreen
  * =====================================================================================
- * Shows the user's active programmes with progress, and lets them record a check-in.
- * The target muscle group card is still hardcoded; it should come from data later.
+ * Shows the programmes the user has joined as tabs, each with its progress, and a list
+ * of programmes they can still join. Every label comes from strings.xml.
  * =====================================================================================
  */
 package com.example.mova.ui.screens.challenges
@@ -20,27 +20,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mova.R
 import com.example.mova.data.remote.model.ChallengeDto
+import com.example.mova.data.remote.model.ProgramDto
 
 @Composable
 fun ChallengesScreen(
     userId: String,
     viewModel: ChallengesViewModel = viewModel()
 ) {
-    // Each collectAsState turns a StateFlow into Compose state. When the value changes,
-    // the UI rebuilds with the new value.
-    val challenges by viewModel.challenges.collectAsState()
+    val joined by viewModel.joined.collectAsState()
+    val catalogue by viewModel.catalogue.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    val error by viewModel.error.collectAsState()
 
-    // Runs once per userId. Without this, the list stays empty when the screen first opens.
-    LaunchedEffect(userId) {
-        viewModel.fetchUserChallenges(userId)
+    // Reload whenever the screen is shown. ON_RESUME also fires when the observer is added,
+    // so this covers the first open and every return from another screen, such as a workout.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, userId) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refresh(userId)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
+
+    // Which joined programme tab is open. Clamped so it never points past the list.
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabIndex = selectedTab.coerceIn(0, (joined.size - 1).coerceAtLeast(0))
+
+    val available = catalogue.filter { !it.joined }
+    // A local copy lets the compiler smart-cast the value in the when branches below.
+    val currentError = error
 
     LazyColumn(
         modifier = Modifier
@@ -48,7 +67,7 @@ fun ChallengesScreen(
             .background(Color(0xFFF8F9FA))
             .padding(16.dp)
     ) {
-        // ---- Header: title, logo and the muscle group card ----
+        // ---- Header ----
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -56,7 +75,7 @@ fun ChallengesScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Challenges",
+                    text = stringResource(R.string.challenges_title),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1A237E)
@@ -69,41 +88,9 @@ fun ChallengesScreen(
                     Text(text = "MOVA", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1A237E))
                 }
             }
-
             Spacer(modifier = Modifier.height(20.dp))
-
             Text(
-                text = "Target Muscle Groups",
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-                color = Color(0xFF1A237E)
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Static placeholder card matching the prototype. Replace with real data later.
-            Card(
-                modifier = Modifier.width(140.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .background(Color(0xFFFFF3E0), RoundedCornerShape(8.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = "C", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD9820B))
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Legs", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1A1C1E))
-                    Text(text = "10 Workouts", fontSize = 11.sp, color = Color.Gray)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = "Active Programs",
+                text = stringResource(R.string.challenges_active_programs),
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 color = Color(0xFF1A237E)
@@ -111,9 +98,7 @@ fun ChallengesScreen(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // ---- Body: exactly one of these states is shown at a time ----
-        // `when` picks the first branch that matches, so the order is the priority:
-        // loading, then error, then empty, then the list.
+        // ---- Joined programmes: loading, error, empty, or tabs ----
         when {
             isLoading -> item {
                 Box(
@@ -124,31 +109,73 @@ fun ChallengesScreen(
                 }
             }
 
-            errorMessage != null -> item {
+            currentError != null -> item {
                 Text(
-                    text = errorMessage ?: "",
+                    text = errorText(currentError),
                     color = MaterialTheme.colorScheme.error,
                     fontSize = 12.sp
                 )
             }
 
-            challenges.isEmpty() -> item {
+            joined.isEmpty() -> item {
                 Text(
-                    text = "You haven't joined any challenges yet.",
+                    text = stringResource(R.string.challenges_none_joined),
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
             }
 
-            else -> items(challenges, key = { it.id }) { challenge ->
-                ActiveProgramCard(
-                    title = challenge.title,
-                    subtitle = challenge.description,
-                    progressText = "${challenge.daysCompleted}/${challenge.durationDays} days",
-                    progressValue = challenge.progressPercentage / 100f, // the bar needs 0.0 to 1.0
-                    percentageString = "${challenge.progressPercentage}%",
-                    completed = challenge.completed,
-                    onCheckIn = { viewModel.checkIn(userId, challenge.id) }
+            else -> {
+                // One tab per joined programme.
+                item {
+                    ScrollableTabRow(
+                        selectedTabIndex = tabIndex,
+                        edgePadding = 0.dp,
+                        containerColor = Color.Transparent
+                    ) {
+                        joined.forEachIndexed { index, challenge ->
+                            Tab(
+                                selected = tabIndex == index,
+                                onClick = { selectedTab = index },
+                                text = {
+                                    Text(
+                                        text = challenge.title,
+                                        maxLines = 1,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // The open programme's progress card.
+                item {
+                    ActiveProgramCard(
+                        challenge = joined[tabIndex],
+                        onCheckIn = { viewModel.checkIn(userId, joined[tabIndex].id) }
+                    )
+                }
+            }
+        }
+
+        // ---- Programmes the user can still join ----
+        if (available.isNotEmpty()) {
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = stringResource(R.string.challenges_available),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color(0xFF1A237E)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            items(available, key = { it.id }) { program ->
+                AvailableProgramCard(
+                    program = program,
+                    onJoin = { viewModel.join(userId, program.id) }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -156,20 +183,10 @@ fun ChallengesScreen(
     }
 }
 
-/**
- * Card for one active programme.
- *
- * @param completed  Hides the check-in button once the programme is finished.
- * @param onCheckIn  Called when the user records today's workout.
- */
+/** Card for the open programme: progress, percentage and check-in. */
 @Composable
-fun ActiveProgramCard(
-    title: String,
-    subtitle: String,
-    progressText: String,
-    progressValue: Float,
-    percentageString: String,
-    completed: Boolean,
+private fun ActiveProgramCard(
+    challenge: ChallengeDto,
     onCheckIn: () -> Unit
 ) {
     Card(
@@ -183,18 +200,29 @@ fun ActiveProgramCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1A1C1E))
-                Text(progressText, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFFD9820B))
+                Text(
+                    text = challenge.title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color(0xFF1A1C1E)
+                )
+                Text(
+                    text = stringResource(
+                        R.string.challenges_progress_days,
+                        challenge.daysCompleted,
+                        challenge.durationDays
+                    ),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    color = Color(0xFFD9820B)
+                )
             }
             Spacer(modifier = Modifier.height(2.dp))
-            Text(subtitle, fontSize = 11.sp, color = Color.Gray)
+            Text(text = challenge.description, fontSize = 11.sp, color = Color.Gray)
             Spacer(modifier = Modifier.height(12.dp))
 
-            // The lambda form lets the bar read its value during drawing rather than during
-            // recomposition. If your Material3 version doesn't accept a lambda, use
-            // `progress = progressValue` instead.
             LinearProgressIndicator(
-                progress =  progressValue ,
+                progress =  challenge.progressPercentage / 100f ,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
@@ -208,21 +236,81 @@ fun ActiveProgramCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Overall progress", fontSize = 11.sp, color = Color.Gray)
-                Text(percentageString, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1C1E))
+                Text(
+                    text = stringResource(R.string.challenges_overall_progress),
+                    fontSize = 11.sp,
+                    color = Color.Gray
+                )
+                Text(
+                    text = "${challenge.progressPercentage}%",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A1C1E)
+                )
             }
 
-            // Only shown while the program is in progress. The server also limits check-in
-            // to once per day, so tapping again shows a message instead of counting twice.
-            if (!completed) {
-                Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            if (challenge.completed) {
+                Text(
+                    text = stringResource(R.string.challenges_completed),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    color = Color(0xFF2E7D32),
+                    modifier = Modifier.align(Alignment.End)
+                )
+            } else {
                 OutlinedButton(
                     onClick = onCheckIn,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("Check in today", fontSize = 12.sp)
+                    Text(text = stringResource(R.string.challenges_check_in), fontSize = 12.sp)
                 }
             }
         }
     }
+}
+
+/** Card for a programme the user has not joined yet. */
+@Composable
+private fun AvailableProgramCard(
+    program: ProgramDto,
+    onJoin: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = program.title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color(0xFF1A1C1E)
+                )
+                Text(text = program.description, fontSize = 11.sp, color = Color.Gray)
+                Text(
+                    text = stringResource(R.string.challenges_duration_days, program.durationDays),
+                    fontSize = 11.sp,
+                    color = Color(0xFFD9820B)
+                )
+            }
+            Button(onClick = onJoin) {
+                Text(text = stringResource(R.string.challenges_join), fontSize = 12.sp)
+            }
+        }
+    }
+}
+
+/** Turns an error from the ViewModel into the matching translated message. */
+@Composable
+private fun errorText(error: ChallengeError): String = when (error) {
+    ChallengeError.NETWORK -> stringResource(R.string.network_error)
+    ChallengeError.LOAD_FAILED -> stringResource(R.string.error_load)
+    ChallengeError.ACTION_FAILED -> stringResource(R.string.error_action)
+    ChallengeError.ALREADY_DONE -> stringResource(R.string.error_already_done)
 }
