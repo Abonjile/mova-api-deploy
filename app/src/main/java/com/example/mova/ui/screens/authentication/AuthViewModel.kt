@@ -138,7 +138,7 @@ class AuthViewModel @Inject constructor(
 
 
     // SSO STUBS
-    // TODO: Apple / Biometric flows in a future phase.
+    // TODO: Apple in a future phase.
 
     fun signInWithGoogle(idToken: String) {
         viewModelScope.launch {
@@ -167,9 +167,19 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signInWithBiometric() {
-        Log.d(TAG, "Biometric auth requested (not yet implemented)")
-        // TODO: Use BiometricPrompt → on success, restore cached session
-        _uiState.update { it.copy(error = "Biometric sign-in coming soon") }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            val userId = sessionManager.getUserId()
+            if (userId != null) {
+                Log.d(TAG, "Biometric login success for user: $userId")
+                // User is already logged in locally, just navigate
+                _uiState.update { it.copy(isLoading = false, success = true, isNewRegistration = false) }
+            } else {
+                Log.e(TAG, "Biometric login failed: No session found")
+                _uiState.update { it.copy(isLoading = false, error = "No previous session found. Please log in with your password first.") }
+            }
+        }
     }
 
     // UTILITY
