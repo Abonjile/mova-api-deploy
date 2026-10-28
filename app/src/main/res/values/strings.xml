@@ -1,5 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">MOVA</string>
+
+    <!-- Language screen -->
+    <string name="language_screen_title">Language Settings</string>
+    <string name="language_welcome">Welcome to our multi-language app.</string>
+    <string name="language_description">Choose your preferred language.</string>
+    <string name="language_choose_label">Choose language:</string>
+    <string name="language_english">English</string>
+    <string name="language_zulu">isiZulu</string>
+    <string name="language_sesotho">Sesotho</string>
+    <string name="language_use_device">Use device language</string>
+    <string name="language_current_label">Current language: %1$s</string>
+
+    <!-- Shared -->
+    <string name="period_weekly">Weekly</string>
+    <string name="period_monthly">Monthly</string>
+    <string name="network_error">Can\'t reach the server. Check your connection.</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Challenges -->
+    <string name="challenges_title">Challenges</string>
+    <string name="challenges_target_muscles">Target Muscle Groups</string>
+    <string name="challenges_active_programs">Active Programs</string>
+    <string name="challenges_none_joined">You haven\'t joined any challenges yet.</string>
+    <string name="challenges_progress_days">%1$d/%2$d days</string>
+    <string name="challenges_overall_progress">Overall progress</string>
+    <string name="challenges_check_in">Check in today</string>
+    <string name="challenges_available">Available programmes</string>
+    <string name="challenges_join">Join</string>
+    <string name="challenges_duration_days">%1$d days</string>
+    <string name="challenges_completed">Completed</string>
+
+    <!-- Analytics -->
+    <string name="analytics_title">Analytics</string>
+    <string name="analytics_goal_setting">Goal Setting</string>
+    <string name="analytics_active_goal">%1$s Active Goal</string>
+    <string name="analytics_no_goal">No goal set</string>
+    <string name="analytics_edit">EDIT</string>
+    <string name="analytics_current_status">Current Status</string>
+    <string name="analytics_calories_status">%1$d / %2$d cal</string>
+    <string name="analytics_performance_trends">Performance Trends</string>
+    <string name="analytics_calories_trend">%1$s Calories Trend</string>
+    <string name="analytics_no_trend">No trend data available</string>
+    <string name="analytics_training_volume">Training Volume (Mins)</string>
+    <string name="analytics_muscle_distribution">Muscle Group Distribution</string>
+    <string name="analytics_core">Core &amp; Abs (%1$d%%)</string>
+    <string name="analytics_upper">Upper Body (%1$d%%)</string>
+    <string name="analytics_lower">Lower Body (%1$d%%)</string>
+    <string name="analytics_edit_dialog">Edit Active Goal</string>
+    <string name="analytics_goal_title">Goal Title</string>
+    <string name="analytics_target_calories">Target Calories</string>
+
+    <!-- Rewards -->
     <string name="rewards_title">Rewards</string>
     <string name="day_streak_format">%d Day Streak!</string>
     <string name="consistency_level_format">Consistency level: %d%% weekly</string>
@@ -9,4 +64,12 @@
     <string name="claim">Claim</string>
     <string name="milestone_badges">Milestone Badges</string>
     <string name="no_milestone_badges">No milestone badges recorded.</string>
+
+    <!-- Error messages -->
+    <string name="error_load">Couldn\'t load your challenges. Try again.</string>
+    <string name="error_action">Something went wrong. Try again.</string>
+    <string name="error_already_done">Already recorded for today.</string>
+    <string name="error_load_analytics">Couldn\'t load analytics. Try again.</string>
+    <string name="error_save_goal">Couldn\'t save your goal. Try again.</string>
+    <string name="error_invalid_goal">A goal needs a title and a calorie target above 0.</string>
 </resources>
