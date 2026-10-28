@@ -1,12 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">MOVA</string>
-    <string name="rewards_title">Mputliso</string>
-    <string name="day_streak_format">Matsatsi a %d a latellana!</string>
-    <string name="consistency_level_format">Boemo ba botsitso: %d%% ka beke</string>
-    <string name="active_challenge_rewards">Mputliso oa Mathata a Sebetsang</string>
-    <string name="no_claimable_rewards">Ha ho meputiso e fumanehang hona joale.</string>
-    <string name="claimed">E nkuoe</string>
-    <string name="claim">Nka</string>
-    <string name="milestone_badges">Liantle tsa Mehla</string>
-    <string name="no_milestone_badges">Ha ho liantle tsa mehla tse ngolisitsoeng.</string>
+
+    <!-- Language screen -->
+    <string name="language_screen_title">Ditlhophiso tsa Puo</string>
+    <string name="language_welcome">Re amohela lenaneng la rona la lipuo tse ngata.</string>
+    <string name="language_description">Khetha puo eo o e ratang.</string>
+    <string name="language_choose_label">Khetha puo:</string>
+    <string name="language_english">Senyesemane</string>
+    <string name="language_zulu">isiZulu</string>
+    <string name="language_sesotho">Sesotho</string>
+    <string name="language_use_device">Sebedisa puo ea sesebelisoa</string>
+    <string name="language_current_label">Puo ea hajoale: %1$s</string>
+
+    <!-- Shared -->
+    <string name="period_weekly">Beke</string>
+    <string name="period_monthly">Khoeli</string>
+    <string name="network_error">Ha ho khonehe ho fihlella seva. Hlahloba marang-rang a hau.</string>
+    <string name="action_save">Boloka</string>
+    <string name="action_cancel">Hlakola</string>
+
+    <!-- Challenges -->
+    <string name="challenges_title">Liphephetso</string>
+    <string name="challenges_target_muscles">Lihlopha tsa mesifa tse ikemiselitsoeng</string>
+    <string name="challenges_active_programs">Mananeo a sebetsang</string>
+    <string name="challenges_none_joined">Ha u so kene liphephetso life.</string>
+    <string name="challenges_progress_days">%1$d/%2$d matsatsi</string>
+    <string name="challenges_overall_progress">Tsoelo-pele ka kakaretso</string>
+    <string name="challenges_check_in">Kena kajeno</string>
+    <string name="challenges_available">Mananeo a fumanehang</string>
+    <string name="challenges_join">Kena</string>
+    <string name="challenges_duration_days">matsatsi a %1$d</string>
+    <string name="challenges_completed">E phethiloe</string>
+
+    <!-- Analytics -->
+    <string name="analytics_title">Tlhahlobo</string>
+    <string name="analytics_goal_setting">Ho beha sepheo</string>
+    <string name="analytics_active_goal">%1$s Sepheo se Sebetsang</string>
+    <string name="analytics_no_goal">Ha ho sepheo se beoang</string>
+    <string name="analytics_edit">FETOLA</string>
+    <string name="analytics_current_status">Boemo ba hajoale</string>
+    <string name="analytics_calories_status">%1$d / %2$d cal</string>
+    <string name="analytics_performance_trends">Mekhoa ea ts\'ebetso</string>
+    <string name="analytics_calories_trend">Mokhoa oa lik\'hilojule: %1$s</string>
+    <string name="analytics_no_trend">Ha ho lintlha tsa mokhoa tse fumanehang</string>
+    <string name="analytics_training_volume">Bongata ba koetliso (Metsotso)</string>
+    <string name="analytics_muscle_distribution">Kabo ea lihlopha tsa mesifa</string>
+    <string name="analytics_core">Mpa le mala (%1$d%%)</string>
+    <string name="analytics_upper">Mmele o hodimo (%1$d%%)</string>
+    <string name="analytics_lower">Mmele o tlase (%1$d%%)</string>
+    <string name="analytics_edit_dialog">Fetola sepheo se sebetsang</string>
+    <string name="analytics_goal_title">Sehlooho sa sepheo</string>
+    <string name="analytics_target_calories">Lik\'hilojule tse ikemiselitsoeng</string>
+
+    <!-- Rewards -->
+    <string name="rewards_title">Melemo</string>
+    <string name="day_streak_format">Matsatsi a %d a tsoelang!</string>
+    <string name="consistency_level_format">Boikemisetso: %d%% ka beke</string>
+    <string name="active_challenge_rewards">Melemo ea liphephetso tse sebetsang</string>
+    <string name="no_claimable_rewards">Ha ho melemo e amohelehang hajoale.</string>
+    <string name="claimed">E amohetsoe</string>
+    <string name="claim">Amohela</string>
+    <string name="milestone_badges">Limetsara tsa mohato</string>
+    <string name="no_milestone_badges">Ha ho limetsara tse fumanoeng hajoale.</string>
+
+    <!-- Error -->
+    <string name="error_load">Ho hlolehile ho laisa liphephetso tsa hao. Leka hape.</string>
+    <string name="error_action">Ho na le bothata. Leka hape.</string>
+    <string name="error_already_done">Se rekotiloe kajeno.</string>
+    <string name="error_load_analytics">Ho hlolehile ho laisa tlhahlobo. Leka hape.</string>
+    <string name="error_save_goal">Ho hlolehile ho boloka sepheo sa hao. Leka hape.</string>
+    <string name="error_invalid_goal">Sepheo se hloka sehlooho le palo ea lik\'hilojule e fetang 0.</string>
 </resources>
