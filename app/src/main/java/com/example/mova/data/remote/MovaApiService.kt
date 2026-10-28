@@ -65,4 +65,10 @@ interface MovaApiService {
     suspend fun claimReward(
         @Body body: ClaimRewardRequest
     ): Response<ResponseBody>
+
+    /** Every active program, marked joined or not for this user. */
+    @GET("api/challenges/catalogue/{userId}")
+    suspend fun getCatalogue(
+        @Path("userId") userId: String
+    ): Response<List<ProgramDto>>
 }
