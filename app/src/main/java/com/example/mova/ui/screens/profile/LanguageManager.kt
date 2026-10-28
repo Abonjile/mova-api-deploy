@@ -7,32 +7,40 @@ import androidx.core.os.LocaleListCompat
  * =====================================================================================
  * UTILITY: LanguageManager
  * =====================================================================================
- * Handles runtime locale switching for the application using AppCompatDelegate
- * supporting English ("en"), isiZulu ("zu"), and Sesotho ("st").
+ * Switches the app's language using AppCompat. Android loads the matching
+ * values-<code> resources automatically, and it stores the choice so it survives a
+ * restart.
  * =====================================================================================
  */
 object LanguageManager {
 
+    // Language tags that match the folders in res/ and locales_config.xml.
+    const val ENGLISH = "en"
+    const val ZULU = "zu"
+    const val SESOTHO = "st"
+
+    // Special value meaning "follow the device language".
+    const val SYSTEM = "system"
+
     /**
-     * Sets the application locale dynamically at runtime and triggers recomposition.
-     *
-     * @param languageCode The ISO language tag ("en", "zu", or "st").
+     * Sets the app language. An empty locale list tells AppCompat to stop overriding
+     * the language and return control to the device.
      */
-    fun setLocale(languageCode: String) {
-        if (languageCode.isBlank()) return
-        val appLocale = LocaleListCompat.forLanguageTags(languageCode)
-        AppCompatDelegate.setApplicationLocales(appLocale)
+    fun setLanguage(tag: String) {
+        val locales = if (tag == SYSTEM) {
+            LocaleListCompat.getEmptyLocaleList()
+        } else {
+            LocaleListCompat.forLanguageTags(tag)
+        }
+        AppCompatDelegate.setApplicationLocales(locales)
     }
 
     /**
-     * Gets the current active application locale tag.
+     * Returns the language the user chose, or SYSTEM if no app language is set.
+     * Used to show the correct radio button when the screen opens.
      */
-    fun getCurrentLocaleTag(): String {
+    fun currentSelection(): String {
         val locales = AppCompatDelegate.getApplicationLocales()
-        return if (!locales.isEmpty) {
-            locales.get(0)?.language ?: "en"
-        } else {
-            "en"
-        }
+        return if (locales.isEmpty) SYSTEM else locales.get(0)?.language ?: SYSTEM
     }
 }
