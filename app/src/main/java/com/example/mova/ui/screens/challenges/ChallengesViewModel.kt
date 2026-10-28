@@ -1,8 +1,11 @@
 /**
- * ChallengesViewModel
- * Holds challenge data for the Challenges screen and performs join and check-in
- * actions. The screen only observes state. Network work happens here, so the UI
- * survives rotation without refetching.
+ * =====================================================================================
+ * VIEWMODEL: ChallengesViewModel
+ * =====================================================================================
+ * Holds the programmes the user has joined, the full catalogue, and the actions to join
+ * or check in. Errors are sent as an enum, and the screen turns each one into a string,
+ * so the messages translate.
+ * =====================================================================================
  */
 package com.example.mova.ui.screens.challenges
 
@@ -11,87 +14,97 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mova.data.remote.RetrofitClient
 import com.example.mova.data.remote.model.ChallengeDto
+import com.example.mova.data.remote.model.ProgramDto
 import com.example.mova.data.remote.model.UserIdRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
+import retrofit2.Response
+import java.io.IOException
+
+/** Problems the screen can show. Each one maps to a string in strings.xml. */
+enum class ChallengeError { NETWORK, LOAD_FAILED, ACTION_FAILED, ALREADY_DONE }
 
 class ChallengesViewModel : ViewModel() {
 
     private val api = RetrofitClient.apiService
 
-    // Private mutable state, exposed as read-only StateFlow. The screen can observe the
-    // data but can't change it directly, so all changes go through this class.
-    private val _challenges = MutableStateFlow<List<ChallengeDto>>(emptyList())
-    val challenges: StateFlow<List<ChallengeDto>> = _challenges.asStateFlow()
+    // Programmes the user has joined, with progress.
+    private val _joined = MutableStateFlow<List<ChallengeDto>>(emptyList())
+    val joined: StateFlow<List<ChallengeDto>> = _joined.asStateFlow()
+
+    // Every active programme, including ones not yet joined.
+    private val _catalogue = MutableStateFlow<List<ProgramDto>>(emptyList())
+    val catalogue: StateFlow<List<ProgramDto>> = _catalogue.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // A user-facing message. Null means there is no error to show.
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+    private val _error = MutableStateFlow<ChallengeError?>(null)
+    val error: StateFlow<ChallengeError?> = _error.asStateFlow()
 
-    /**
-     * Loads the user's challenges. Errors are shown on screen, not only in Logcat, so the
-     * user can tell an empty list apart from a failed request.
-     */
-    fun fetchUserChallenges(userId: String) {
-        if (userId.isBlank()) return // nothing to fetch until the user is known
+    /** Loads both lists. Called on open and every time the screen is shown again. */
+    fun refresh(userId: String) {
+        if (userId.isBlank()) return
         viewModelScope.launch {
             _isLoading.value = true
-            _errorMessage.value = null
+            _error.value = null
             try {
-                val response = api.getUserChallenges(userId)
-                val body = response.body()
-                if (response.isSuccessful && body != null) {
-                    _challenges.value = body
+                val mine = api.getUserChallenges(userId)
+                val programs = api.getCatalogue(userId)
+
+                val mineBody = mine.body()
+                val programsBody = programs.body()
+
+                if (mine.isSuccessful && mineBody != null) {
+                    _joined.value = mineBody
                 } else {
-                    _errorMessage.value = "Couldn't load challenges (HTTP ${response.code()})"
+                    _error.value = ChallengeError.LOAD_FAILED
                 }
+
+                if (programs.isSuccessful && programsBody != null) {
+                    _catalogue.value = programsBody
+                }
+            } catch (e: IOException) {
+                _error.value = ChallengeError.NETWORK
             } catch (e: Exception) {
-                // Covers network failures and JSON parse errors. The full exception goes
-                // to Logcat for debugging, and the user sees a plain message.
-                Log.e(TAG, "Fetch failed", e)
-                _errorMessage.value = "Can't reach the server. Check the connection."
+                Log.e(TAG, "Refresh failed", e)
+                _error.value = ChallengeError.LOAD_FAILED
             } finally {
-                _isLoading.value = false // always reset, even when an error occurred
+                _isLoading.value = false
             }
         }
     }
 
-    /** Joins a challenge, then refreshes the list so the new entry appears. */
-    fun joinChallenge(userId: String, challengeId: String) {
-        viewModelScope.launch {
-            try {
-                val response = api.joinChallenge(challengeId, UserIdRequest(userId))
-                if (response.isSuccessful) fetchUserChallenges(userId)
-                else Log.e(TAG, "Join failed: ${response.code()}")
-            } catch (e: Exception) {
-                Log.e(TAG, "Join exception", e)
-            }
-        }
-    }
+    /** Joins a programme, then reloads both lists so it moves into the tabs. */
+    fun join(userId: String, challengeId: String) =
+        runAction(userId) { api.joinChallenge(challengeId, UserIdRequest(userId)) }
 
-    /**
-     * Records today's check-in. The list is refreshed afterwards, so progress is taken
-     * from the server rather than calculated on the phone.
-     */
-    fun checkIn(userId: String, challengeId: String) {
+    /** Manual check-in for today. The server allows one per day. */
+    fun checkIn(userId: String, challengeId: String) =
+        runAction(userId) { api.checkInChallenge(challengeId, UserIdRequest(userId)) }
+
+    private fun runAction(userId: String, call: suspend () -> Response<ResponseBody>) {
         viewModelScope.launch {
             try {
-                val response = api.checkInChallenge(challengeId, UserIdRequest(userId))
-                if (response.isSuccessful) fetchUserChallenges(userId)
-                else _errorMessage.value = "Check-in failed (HTTP ${response.code()})"
+                val response = call()
+                when {
+                    response.isSuccessful -> refresh(userId)
+                    response.code() == 409 -> _error.value = ChallengeError.ALREADY_DONE
+                    else -> _error.value = ChallengeError.ACTION_FAILED
+                }
+            } catch (e: IOException) {
+                _error.value = ChallengeError.NETWORK
             } catch (e: Exception) {
-                _errorMessage.value = "Can't reach the server."
+                Log.e(TAG, "Action failed", e)
+                _error.value = ChallengeError.ACTION_FAILED
             }
         }
     }
 
     companion object {
-        // A constant tag keeps Logcat filtering consistent.
         private const val TAG = "ChallengesViewModel"
     }
 }
