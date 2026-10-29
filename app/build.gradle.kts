@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -26,12 +27,23 @@ android {
         buildConfigField("String", "API_BASE_URL", "\"https://mova-api-deploy.onrender.com/\"")
     }
 
+    // Signed APK: the keystore and passwords come from the environment, so they are not in the repo.
+    signingConfigs {
+        create("release") {
+            storeFile = file("${System.getProperty("user.home")}/mova-release.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = "mova"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+        }
+    }
+
     buildTypes {
         debug {
-            // Local backend on the emulator.
+            // Local backend on the emulator. Use the PC's LAN IP for a physical phone.
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000/\"")
         }
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -77,7 +89,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
 
-    // AppCompat: per-app language switching (LanguageManager, UserViewModel)
+    // AppCompat: per-app language switching
     implementation("androidx.appcompat:appcompat:1.7.1")
 
     // Compose
@@ -115,6 +127,7 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
     // Confetti Dependency
     implementation("nl.dionsegijn:konfetti-compose:2.0.4")
@@ -124,6 +137,18 @@ dependencies {
 
     // DataStore (Settings)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Firebase BoM (manages Firebase library versions)
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+
+    // Firebase Auth
+    implementation("com.google.firebase:firebase-auth")
+
+    // Google Sign-In via Credential Manager
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("androidx.credentials:credentials:1.2.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.2.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
