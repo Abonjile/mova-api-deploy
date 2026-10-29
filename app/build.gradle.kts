@@ -2,9 +2,9 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
-    id("com.google.devtools.ksp")
 }
 
 android {
@@ -22,9 +22,12 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Fallback URL. Both build types set their own value below.
+        buildConfigField("String", "API_BASE_URL", "\"https://mova-api-deploy.onrender.com/\"")
     }
 
-    // Signed Apk
+    // Signed APK: the keystore and passwords come from the environment, so they are not in the repo.
     signingConfigs {
         create("release") {
             storeFile = file("${System.getProperty("user.home")}/mova-release.jks")
@@ -35,6 +38,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Local backend on the emulator. Use the PC's LAN IP for a physical phone.
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000/\"")
+        }
         release {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
@@ -42,6 +49,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "API_BASE_URL", "\"https://mova-api-deploy.onrender.com/\"")
         }
     }
 
@@ -56,6 +64,8 @@ android {
 
     buildFeatures {
         compose = true
+        // Generates BuildConfig, which RetrofitClient.kt reads.
+        buildConfig = true
     }
 
     composeOptions {
@@ -71,7 +81,6 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
-
 }
 
 dependencies {
@@ -79,6 +88,9 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
+
+    // AppCompat: per-app language switching
+    implementation("androidx.appcompat:appcompat:1.7.1")
 
     // Compose
     implementation(platform("androidx.compose:compose-bom:2023.10.01"))
@@ -97,14 +109,13 @@ dependencies {
 
     // Hilt - Dependency Injection
     implementation("com.google.dagger:hilt-android:2.48")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
-    ksp("com.google.dagger:hilt-compiler:2.48")
+    kapt("com.google.dagger:hilt-compiler:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Room Database (Offline Sync)
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
 
     // Retrofit (REST API)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -127,18 +138,17 @@ dependencies {
     // DataStore (Settings)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    // Firebase BoM (Manages versions)
+    // Firebase BoM (manages Firebase library versions)
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
 
     // Firebase Auth
     implementation("com.google.firebase:firebase-auth")
 
-    // Google Play Services for Credential Manager
+    // Google Sign-In via Credential Manager
     implementation("com.google.android.gms:play-services-auth:21.2.0")
-
-    // Credential Manager (for the modern Google Sign-In flow)
     implementation("androidx.credentials:credentials:1.2.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.2.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

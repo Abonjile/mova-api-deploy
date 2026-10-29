@@ -1,3 +1,12 @@
+/**
+ * =====================================================================================
+ * VIEWMODEL: ChallengesViewModel
+ * =====================================================================================
+ * Holds the programmes the user has joined, the full catalogue, and the actions to join
+ * or check in. Errors are sent as an enum, and the screen turns each one into a string,
+ * so the messages translate.
+ * =====================================================================================
+ */
 package com.example.mova.ui.screens.challenges
 
 import android.util.Log
@@ -5,50 +14,97 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mova.data.remote.RetrofitClient
 import com.example.mova.data.remote.model.ChallengeDto
+import com.example.mova.data.remote.model.ProgramDto
+import com.example.mova.data.remote.model.UserIdRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
+import retrofit2.Response
+import java.io.IOException
 
-/**
- * ViewModel responsible for managing active fitness challenges state,
- * fetching backend challenge programs, and handling user progress updates.
- */
+/** Problems the screen can show. Each one maps to a string in strings.xml. */
+enum class ChallengeError { NETWORK, LOAD_FAILED, ACTION_FAILED, ALREADY_DONE }
+
 class ChallengesViewModel : ViewModel() {
 
-    // UI state holder for the list of active challenges
-    private val _challenges = MutableStateFlow<List<ChallengeDto>>(emptyList())
-    val challenges: StateFlow<List<ChallengeDto>> = _challenges.asStateFlow()
+    private val api = RetrofitClient.apiService
 
-    // Loading indicator state for network operations
+    // Programmes the user has joined, with progress.
+    private val _joined = MutableStateFlow<List<ChallengeDto>>(emptyList())
+    val joined: StateFlow<List<ChallengeDto>> = _joined.asStateFlow()
+
+    // Every active programme, including ones not yet joined.
+    private val _catalogue = MutableStateFlow<List<ProgramDto>>(emptyList())
+    val catalogue: StateFlow<List<ProgramDto>> = _catalogue.asStateFlow()
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    init {
-        // Fetch active challenges automatically when the ViewModel initializes
-        fetchActiveChallenges()
-    }
+    private val _error = MutableStateFlow<ChallengeError?>(null)
+    val error: StateFlow<ChallengeError?> = _error.asStateFlow()
 
-    /**
-     * Calls the REST API service via Retrofit to retrieve active challenges
-     * for the current user profile.
-     */
-    fun fetchActiveChallenges() {
+    /** Loads both lists. Called on open and every time the screen is shown again. */
+    fun refresh(userId: String) {
+        if (userId.isBlank()) return
         viewModelScope.launch {
             _isLoading.value = true
+            _error.value = null
             try {
-                // Fetching active 7, 10, or 30-day challenge records from backend
-                val response = RetrofitClient.apiService.getActiveChallenges()
-                if (response.isSuccessful && response.body() != null) {
-                    _challenges.value = response.body()!!
+                val mine = api.getUserChallenges(userId)
+                val programs = api.getCatalogue(userId)
+
+                val mineBody = mine.body()
+                val programsBody = programs.body()
+
+                if (mine.isSuccessful && mineBody != null) {
+                    _joined.value = mineBody
                 } else {
-                    Log.e("ChallengesViewModel", "Failed to fetch challenges: ${response.errorBody()}")
+                    _error.value = ChallengeError.LOAD_FAILED
                 }
+
+                if (programs.isSuccessful && programsBody != null) {
+                    _catalogue.value = programsBody
+                }
+            } catch (e: IOException) {
+                _error.value = ChallengeError.NETWORK
             } catch (e: Exception) {
-                Log.e("ChallengesViewModel", "Network exception occurred: ${e.localizedMessage}")
+                Log.e(TAG, "Refresh failed", e)
+                _error.value = ChallengeError.LOAD_FAILED
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    /** Joins a programme, then reloads both lists so it moves into the tabs. */
+    fun join(userId: String, challengeId: String) =
+        runAction(userId) { api.joinChallenge(challengeId, UserIdRequest(userId)) }
+
+    /** Manual check-in for today. The server allows one per day. */
+    fun checkIn(userId: String, challengeId: String) =
+        runAction(userId) { api.checkInChallenge(challengeId, UserIdRequest(userId)) }
+
+    private fun runAction(userId: String, call: suspend () -> Response<ResponseBody>) {
+        viewModelScope.launch {
+            try {
+                val response = call()
+                when {
+                    response.isSuccessful -> refresh(userId)
+                    response.code() == 409 -> _error.value = ChallengeError.ALREADY_DONE
+                    else -> _error.value = ChallengeError.ACTION_FAILED
+                }
+            } catch (e: IOException) {
+                _error.value = ChallengeError.NETWORK
+            } catch (e: Exception) {
+                Log.e(TAG, "Action failed", e)
+                _error.value = ChallengeError.ACTION_FAILED
+            }
+        }
+    }
+
+    companion object {
+        private const val TAG = "ChallengesViewModel"
     }
 }

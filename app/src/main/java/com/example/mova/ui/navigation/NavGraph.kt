@@ -23,13 +23,19 @@ import com.example.mova.ui.screens.workout.WorkoutBuilderLoggerScreen
 import com.example.mova.ui.screens.challenges.ChallengesScreen
 import com.example.mova.ui.screens.rewards.RewardsScreen
 import com.example.mova.ui.screens.analytics.AnalyticsScreen
+import com.example.mova.ui.session.SessionViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.getValue
 
 sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val label: String) {
-    object Challenges : Screen("challenges", Icons.Default.RunCircle, "Challenges")
-    object Rewards : Screen("rewards", Icons.Default.Star, "Rewards")
     object Workout : Screen("workout", Icons.Default.FitnessCenter, "Workout")
-    object Profile : Screen("profile", Icons.Default.Person, "Profile")
+    object Challenges : Screen("challenges", Icons.Default.RunCircle, "Challenges")
+
     object Analytics : Screen("analytics", Icons.Default.BarChart, "Analytics")
+    object Rewards : Screen("rewards", Icons.Default.Star, "Rewards")
+    object Profile : Screen("profile", Icons.Default.Person, "Profile")
 
     // Workout detail routes (not in bottom nav)
     object WorkoutDetail : Screen("workout_detail/{workoutId}", Icons.Default.Info, "Detail") {
@@ -48,6 +54,11 @@ fun MovaNavGraph(
     modifier: Modifier = Modifier,
     startDestination: String = "splash"
 ) {
+    // Active session user ID for real data fetching from MongoDB
+    val currentUserId = ""
+    val sessionViewModel: SessionViewModel = hiltViewModel()
+    val sessionUserId by sessionViewModel.userId.collectAsState()
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -151,15 +162,33 @@ fun MovaNavGraph(
             )
         }
 
-        // ===== Other bottom-nav screens =====
-        composable(Screen.Challenges.route) {
-            ChallengesScreen()
+        // ===== Other bottom-nav screens (Passing real userId) =====
+        composable("challenges") {
+            val id = sessionUserId
+            if (id != null) {
+                ChallengesScreen(userId = id)
+            } else {
+                CircularProgressIndicator()
+            }
         }
 
-        composable(Screen.Rewards.route) {
-            RewardsScreen()
+        composable("rewards") {
+            val id = sessionUserId
+            if (id != null) {
+                RewardsScreen(userId = id)
+            } else {
+                CircularProgressIndicator()
+            }
         }
 
+        composable("analytics") {
+            val id = sessionUserId
+            if (id != null) {
+                AnalyticsScreen(userId = id)
+            } else {
+                CircularProgressIndicator()
+            }
+        }
         composable(Screen.Profile.route) {
             ProfileScreen(
                 onNavigateToSettings = { navController.navigate("settings") },
@@ -184,8 +213,5 @@ fun MovaNavGraph(
             )
         }
 
-        composable(Screen.Analytics.route) {
-            AnalyticsScreen()
-        }
     }
 }
