@@ -16,9 +16,10 @@ import com.example.mova.ui.theme.MovaTheme
 import com.example.mova.data.session.SessionManager
 import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.appcompat.app.AppCompatActivity
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     @Inject lateinit var sessionManager: SessionManager
 
