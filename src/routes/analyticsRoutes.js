@@ -53,7 +53,7 @@ router.get('/:userId', async (req, res) => {
     const logs = await WorkoutLog.find({
       userId,
       completed: true,
-      date: { $gte: range.start, $lte: range.end },
+      createdAt: { $gte: range.start, $lte: range.end },
     }).lean(); // .lean() returns plain objects, which is faster for read-only work
 
     // Fill the chart buckets with zeros first, so days with no workouts show as empty
@@ -63,7 +63,7 @@ router.get('/:userId', async (req, res) => {
     let burnedCalories = 0;
 
     for (const log of logs) {
-      const i = bucketIndex(log.date, range);
+      const i = bucketIndex(log.createdAt, range);
       calorieTrend[i] += log.caloriesBurned || 0;
       trainingVolume[i] += log.durationMinutes || 0;
       burnedCalories += log.caloriesBurned || 0;
