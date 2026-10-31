@@ -2,8 +2,8 @@
  * =====================================================================================
  * COMPOSABLE: ChallengesScreen
  * =====================================================================================
- * Shows the programmes the user has joined as tabs, each with its progress, and a list
- * of programmes they can still join. Every label comes from strings.xml.
+ * Shows the programs the user has joined as tabs, each with its progress, and a list
+ * of programs they can still join. Every label comes from strings.xml.
  * =====================================================================================
  */
 package com.example.mova.ui.screens.challenges
