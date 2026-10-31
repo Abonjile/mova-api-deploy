@@ -48,13 +48,13 @@ router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const logs = await WorkoutLog.find({ userId, completed: true }).sort({ date: -1 }).lean();
-    const streakDays = currentStreak(logs.map(l => l.date));
+    const logs = await WorkoutLog.find({ userId, completed: true }).sort({ createdAt: -1 }).lean();
+    const streakDays = currentStreak(logs.map(l => l.createdAt));
 
     // Consistency: share of the last seven days (today included) with a workout.
     const weekStart = new Date(Date.now() - 6 * DAY_MS);
     const activeDaysThisWeek = new Set(
-      logs.filter(l => l.date >= weekStart).map(l => startOfDay(l.date))
+      logs.filter(l => l.createdAt >= weekStart).map(l => startOfDay(l.createdAt))
     ).size;
     const consistencyLevel = Math.round((activeDaysThisWeek / 7) * 100);
 
