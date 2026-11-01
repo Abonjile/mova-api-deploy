@@ -25,6 +25,8 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/workouts', require('./routes/workoutRoutes'));
 app.use('/api/challenges', require('./routes/challengeRoutes'));
 app.use('/api/exercises', require('./routes/exerciseRoutes'));
+app.use('/api/analytics', require('./routes/analyticsRoutes'));
+app.use('/api/rewards', require('./routes/rewardRoutes'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
