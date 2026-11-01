@@ -40,7 +40,7 @@ android {
     buildTypes {
         debug {
             // Local backend on the emulator. Use the PC's LAN IP for a physical phone.
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000/\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://mova-api-deploy.onrender.com/\"")
         }
         release {
             signingConfig = signingConfigs.getByName("release")
@@ -141,8 +141,9 @@ dependencies {
     // Firebase BoM (manages Firebase library versions)
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
 
-    // Firebase Auth
+    // Firebase Auth & Messaging
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-messaging")
 
     // Google Sign-In via Credential Manager
     implementation("com.google.android.gms:play-services-auth:21.2.0")
