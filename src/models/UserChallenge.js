@@ -1,60 +1,58 @@
+/**
+ * =====================================================================================
+ * MODEL: UserChallenge
+ * =====================================================================================
+ * Records one user's progress through one challenge. Progress lives here, not on the
+ * shared Challenge definition, so every user has independent progress on the same
+ * programme.
+ * =====================================================================================
+ */
+
 const mongoose = require('mongoose');
 
 const UserChallengeSchema = new mongoose.Schema({
-  userChallengeId: {
-    type: String,
-    required: true,
-    unique: true,
-    default: () => `uc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`
+  userId: { 
+    type: String, 
+    required: true, 
+    index: true 
   },
-  userId: {
-    type: String,
-    ref: 'User',
-    required: true
+  challengeId: { 
+    type: String, 
+    required: true 
   },
-  challengeId: {
-    type: String,
-    ref: 'Challenge',
-    required: true
-  },
-  startDate: {
-    type: Date,
-    default: Date.now
-  },
-  endDate: {
-    type: Date
-  },
-  currentDay: {
-    type: Number,
-    default: 0
-  },
-  streakCount: {
-    type: Number,
-    default: 0
-  },
-  completed: {
-    type: Boolean,
+  // Progress is stored as a count of completed days, not as a percentage. The
+  // percentage is derived when the data is read, so it can't drift out of sync.
+  daysCompleted: { 
+    type: Number, 
+    default: 0, 
+    min: 0 },
+  // Used to allow only one check-in per calendar day.
+  lastCheckIn: Date,
+  completed: { 
+    type: Boolean, 
     default: false
-  },
-  customNote: {
-    type: String,
-    default: ''
-  },
-  badgeEarned: {
-    type: Boolean,
+   },
+  completedAt: Date,
+  // Reward state is tracked per challenge, so claiming one reward never affects another.
+  rewardClaimed: { 
+    type: Boolean, 
     default: false
-  },
-  completedAt: {
-    type: Date
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+   },
+  rewardClaimedAt: Date,
+  joinedAt: { 
+    type: Date, 
+    default: 
+    Date.now },
+});
+
+/* A user can join a given challenge only once. The database enforces this, so it
+ holds even when two requests arrive at the same moment. */
+UserChallengeSchema.index(
+  { userId: 1, 
+  challengeId: 1 
+},
+{ 
+  unique: true 
 });
 
 module.exports = mongoose.model('UserChallenge', UserChallengeSchema);

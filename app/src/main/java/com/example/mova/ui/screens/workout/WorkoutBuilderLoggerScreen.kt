@@ -60,14 +60,14 @@ private const val SECONDS_PER_REP = 3.0
 @Composable
 fun WorkoutBuilderLoggerScreen(
     onBack: () -> Unit = {},
-    repository: WorkoutRepository = WorkoutRepository(),
     viewModel: WorkoutViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val repository = remember(context) { WorkoutRepository(context) }
     val userIdState by viewModel.userId.collectAsState()
     val userId = userIdState ?: "test_user_123"   // fallback
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
 
     // Form state
     var workoutName by remember { mutableStateOf("") }
@@ -93,7 +93,7 @@ fun WorkoutBuilderLoggerScreen(
                     context.applicationContext,
                     MovaDatabase::class.java,
                     "mova_database"
-                ).build()
+                ).fallbackToDestructiveMigration().build()
             )
             val user = userRepo.getUser(userId)
             userWeight = user?.weight?.toDouble()?.takeIf { it > 0 } ?: 70.0
@@ -128,14 +128,14 @@ fun WorkoutBuilderLoggerScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF00008B))
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     "Create or Log",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF00008B)
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -152,7 +152,7 @@ fun WorkoutBuilderLoggerScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Difficulty
-                Text("Difficulty", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF00008B))
+                Text("Difficulty", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("BEGINNER", "INTERMEDIATE", "ADVANCED").forEach { level ->
@@ -167,7 +167,7 @@ fun WorkoutBuilderLoggerScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Icon picker
-                Text("Workout Icon", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF00008B))
+                Text("Workout Icon", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     iconOptions.forEach { option ->
@@ -175,7 +175,7 @@ fun WorkoutBuilderLoggerScreen(
                             modifier = Modifier
                                 .size(48.dp)
                                 .background(
-                                    color = if (selectedIcon == option.name) Color(0xFF00008B) else Color(0xFFF0F0F0),
+                                    color = if (selectedIcon == option.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                                     shape = CircleShape
                                 )
                                 .clickable { selectedIcon = option.name },
@@ -184,7 +184,7 @@ fun WorkoutBuilderLoggerScreen(
                             Icon(
                                 imageVector = option.icon,
                                 contentDescription = option.name,
-                                tint = if (selectedIcon == option.name) Color.White else Color(0xFF00008B)
+                                tint = if (selectedIcon == option.name) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -193,7 +193,7 @@ fun WorkoutBuilderLoggerScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Exercises
-                Text("Select Exercises", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF00008B))
+                Text("Select Exercises", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (isLoading) {
@@ -256,12 +256,12 @@ fun WorkoutBuilderLoggerScreen(
                         Text("🔥", fontSize = 40.sp)
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text("Estimated Energy Burnt", fontSize = 12.sp, color = Color.White.copy(alpha = 0.85f))
+                            Text("Estimated Energy Burnt", fontSize = 12.sp, color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f))
                             Text(
                                 "$totalCalories kcal",
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.surfaceVariant
                             )
                         }
                     }
@@ -282,7 +282,7 @@ fun WorkoutBuilderLoggerScreen(
                                     name = workoutName,
                                     description = "$description||icon:$selectedIcon",
                                     difficulty = difficulty,
-                                    durationMinutes = (selectedExercises.sumOf { it.sets * it.reps } * 3) / 60,
+                                    durationMinutes = maxOf(1, (selectedExercises.sumOf { it.sets * it.reps } * 3) / 60),
                                     isCustom = true,
                                     icon = selectedIcon
                                 )
@@ -348,7 +348,7 @@ fun WorkoutBuilderLoggerScreen(
                                     name = workoutName,
                                     description = "$description||icon:$selectedIcon",
                                     difficulty = difficulty,
-                                    durationMinutes = (selectedExercises.sumOf { it.sets * it.reps } * 3) / 60,
+                                    durationMinutes = maxOf(1, (selectedExercises.sumOf { it.sets * it.reps } * 3) / 60),
                                     isCustom = true,
                                     icon = selectedIcon
                                 )
@@ -385,7 +385,7 @@ fun WorkoutBuilderLoggerScreen(
                 ) {
                     Text(
                         if (isSaving) "Saving..." else "CREATE CUSTOM WORKOUT",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
@@ -416,7 +416,7 @@ private fun ExerciseCard(
             .clickable { onToggle(selectedExercise == null) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (selectedExercise != null) Color(0xFFF5F5F5) else Color.White
+            containerColor = if (selectedExercise != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -429,7 +429,7 @@ private fun ExerciseCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(exercise.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.Black)
-                    Text(exercise.targetMuscleGroup, fontSize = 12.sp, color = Color(0xFF757575))
+                    Text(exercise.targetMuscleGroup, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             if (selectedExercise != null) {
@@ -465,7 +465,7 @@ private fun Stepper(
     onIncrement: () -> Unit
 ) {
     Column {
-        Text(label, fontSize = 11.sp, color = Color(0xFF757575))
+        Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onDecrement, modifier = Modifier.size(28.dp)) {
                 Icon(Icons.Default.Remove, contentDescription = "Decrease", modifier = Modifier.size(16.dp))

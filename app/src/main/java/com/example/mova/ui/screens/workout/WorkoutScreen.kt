@@ -35,6 +35,7 @@ import com.example.mova.data.models.Exercise
 import com.example.mova.data.models.Workout
 import com.example.mova.data.repository.WorkoutRepository
 import androidx.hilt.navigation.compose.hiltViewModel
+import android.util.Log
 
 // WorkoutScreen is the main dashboard for the workout feature.
 // Loads system workouts, user-created workouts, and recent workouts.
@@ -45,9 +46,12 @@ fun WorkoutScreen(
     modifier: Modifier = Modifier,
     onWorkoutClick: (String) -> Unit = {},
     onAddClick: () -> Unit = {},
-    repository: WorkoutRepository = WorkoutRepository(),
     viewModel: WorkoutViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    // Pass context to the repository!
+    val repository = remember { WorkoutRepository(context) }
+
     // ── Data state ──
     var systemWorkouts by remember { mutableStateOf<List<Workout>>(emptyList()) }
     var userWorkouts by remember { mutableStateOf<List<Workout>>(emptyList()) }
@@ -63,7 +67,6 @@ fun WorkoutScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    val context = LocalContext.current
     val recentStore = remember { RecentWorkoutsStore(context) }
 
     // Real user id from SessionManager, via the ViewModel
@@ -74,21 +77,43 @@ fun WorkoutScreen(
         val uid = userId ?: "test_user_123"
         try {
             isLoading = true
-            systemWorkouts = repository.getSystemWorkouts()
-            userWorkouts = repository.getUserWorkouts(uid)
-            customWorkouts = repository.getCustomWorkouts(uid)
-            allExercises = repository.getAllExercises()
+
+            // 1. Try to fetch from API. If it fails, the repository will fall back to RoomDB.
+            try {
+                systemWorkouts = repository.getSystemWorkouts()
+            } catch (e: Exception) {
+                Log.e("WorkoutScreen", "Network failed, fetching system workouts from cache")
+                // If the repository fails completely, we just leave it empty and let the UI handle it
+            }
+
+            try {
+                userWorkouts = repository.getUserWorkouts(uid)
+            } catch (e: Exception) {}
+
+            try {
+                customWorkouts = repository.getCustomWorkouts(uid)
+            } catch (e: Exception) {}
+
+            try {
+                allExercises = repository.getAllExercises()
+            } catch (e: Exception) {}
 
             // Resolve recent IDs into actual workout objects
             val recentIds = recentStore.getRecentIds()
-            val allAvailable = systemWorkouts + customWorkouts
+            val allAvailable = (systemWorkouts + userWorkouts + customWorkouts).distinctBy { it.workoutId }
             recentWorkouts = recentIds.mapNotNull { id ->
                 allAvailable.firstOrNull { it.workoutId == id }
             }
 
-            errorMessage = null
+            // Only show an error if we literally have nothing to show
+            if (systemWorkouts.isEmpty() && userWorkouts.isEmpty() && customWorkouts.isEmpty()) {
+                errorMessage = "Could not load workouts. Check your connection."
+            } else {
+                errorMessage = null
+            }
+
         } catch (e: Exception) {
-            errorMessage = "Could not load workouts: ${e.message}"
+            errorMessage = "An unexpected error occurred."
         } finally {
             isLoading = false
         }
@@ -330,14 +355,14 @@ private fun WorkoutHeader(onAddClick: () -> Unit = {}) {
                 text = "Workout",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF00008B)
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = onAddClick) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Create Workout",
-                    tint = Color(0xFF00008B)
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -346,20 +371,20 @@ private fun WorkoutHeader(onAddClick: () -> Unit = {}) {
             Box(
                 modifier = Modifier
                     .size(10.dp)
-                    .background(Color(0xFF00008B), shape = CircleShape)
+                    .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Box(
                 modifier = Modifier
                     .size(10.dp)
-                    .background(Color(0xFFE53935), shape = CircleShape)
+                    .background(MaterialTheme.colorScheme.error, shape = CircleShape)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = "MOVA",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
     }
@@ -376,14 +401,14 @@ private fun SearchBar(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF0F0F0))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 12.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = "Search",
-            tint = Color(0xFF9E9E9E),
+            tint = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.width(10.dp))
@@ -394,7 +419,7 @@ private fun SearchBar(
                 Text(
                     text = "Search exercises and workouts",
                     fontSize = 14.sp,
-                    color = Color(0xFF9E9E9E)
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 )
             },
             modifier = Modifier.weight(1f),
@@ -406,7 +431,7 @@ private fun SearchBar(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
-                cursorColor = Color(0xFF00008B)
+                cursorColor = MaterialTheme.colorScheme.primary
             )
         )
         if (query.isNotEmpty()) {
@@ -414,7 +439,7 @@ private fun SearchBar(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Clear",
-                    tint = Color(0xFF9E9E9E),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -435,7 +460,7 @@ private fun SearchResultRow(
             .padding(horizontal = 16.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -449,7 +474,7 @@ private fun SearchResultRow(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        color = if (workout.isCustom) Color(0xFF00008B) else Color(0xFFE53935),
+                        color = MaterialTheme.colorScheme.primary,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -466,13 +491,13 @@ private fun SearchResultRow(
                     text = workout.name,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF00008B),
+                    color = MaterialTheme.colorScheme.primary,
                     maxLines = 1
                 )
                 Text(
                     text = "${workout.difficulty} · ${workout.durationMinutes} min",
                     fontSize = 12.sp,
-                    color = Color(0xFF757575)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 // Show matched exercises if the match came from an exercise name
                 if (matchedExercises.isNotEmpty()) {

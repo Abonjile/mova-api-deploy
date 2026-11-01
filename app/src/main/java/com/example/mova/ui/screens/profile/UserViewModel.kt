@@ -1,7 +1,6 @@
 package com.example.mova.ui.screens.profile
 
 import android.util.Log
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mova.data.models.User
@@ -14,6 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
@@ -38,6 +39,8 @@ class UserViewModel @Inject constructor(
 
     // Dark mode state exposed directly from SessionManager
     val darkMode: StateFlow<Boolean> get() = sessionManager.darkMode
+    val largeText: StateFlow<Boolean> get() = sessionManager.largeText
+    val highContrast: StateFlow<Boolean> get() = sessionManager.highContrast
 
     init {
         Log.d(TAG, "UserViewModel initialized")
@@ -139,6 +142,16 @@ class UserViewModel @Inject constructor(
         notificationsEnabled: Boolean,
         biometricEnabled: Boolean
     ) {
+        // Map human-readable language string to ISO 639-1 language tags
+        val languageTag = when (language.lowercase()) {
+            "isizulu", "zulu" -> "zu"
+            "sesotho", "sotho" -> "st"
+            else -> "en"
+        }
+        // Apply the selected language globally to the app runtime
+        val appLocale = LocaleListCompat.forLanguageTags(languageTag)
+        AppCompatDelegate.setApplicationLocales(appLocale)
+
         viewModelScope.launch {
             val userId = sessionManager.getUserId() ?: run {
                 Log.w(TAG, "Cannot update settings — no session")
@@ -163,6 +176,27 @@ class UserViewModel @Inject constructor(
     fun setDarkMode(enabled: Boolean) {
         viewModelScope.launch {
             sessionManager.setDarkMode(enabled)
+        }
+    }
+
+    // Persist biometric preference locally via SessionManager
+    fun setBiometricPreference(enabled: Boolean) {
+        viewModelScope.launch {
+            sessionManager.setBiometricEnabled(enabled)
+        }
+    }
+
+    // Persist Large text preference via SessionManager
+    fun setLargeText(enabled: Boolean) {
+        viewModelScope.launch {
+            sessionManager.setLargeText(enabled)
+        }
+    }
+
+    // Persist High contrast preference via SessionManager
+    fun setHighContrast(enabled: Boolean) {
+        viewModelScope.launch {
+            sessionManager.setHighContrast(enabled)
         }
     }
 

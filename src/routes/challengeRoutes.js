@@ -1,163 +1,132 @@
+/**
+ * ROUTE: challengeRoutes.js
+ * GET  /api/challenges/catalogue/:userId     Every active programme, marked joined or not.
+ * GET  /api/challenges/user/:userId          The programmes this user has joined, with progress.
+ * POST /api/challenges/:challengeId/join     Joins a programme (one join per user).
+ * POST /api/challenges/:challengeId/checkin  Manual check-in for today (once per day).
+ */
+
 const express = require('express');
 const router = express.Router();
 const Challenge = require('../models/Challenge');
 const UserChallenge = require('../models/UserChallenge');
+const { sameDay } = require('../services/challengeProgress');
 
-// GET /api/challenges — Get all available challenges
-router.get('/', async (req, res) => {
+// GET /api/challenges/catalogue/:userId
+router.get('/catalogue/:userId', async (req, res) => {
   try {
-    const challenges = await Challenge.find({ isActive: true });
-    res.json(challenges);
+    const defs = await Challenge.find({ isActive: true }).sort({ durationDays: 1 }).lean();
+    const joined = await UserChallenge.find({ userId: req.params.userId }).lean();
+    const joinedById = new Map(joined.map(u => [u.challengeId, u]));
+
+    res.status(200).json(
+      defs.map(d => {
+        const uc = joinedById.get(d.challengeId);
+        return {
+          id: d.challengeId,
+          title: d.name,
+          description: d.description,
+          durationDays: d.durationDays,
+          difficulty: d.difficulty,
+          joined: !!uc,
+          completed: !!uc?.completed,
+        };
+      })
+    );
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// GET /api/challenges/:id — Get challenge details
-router.get('/:id', async (req, res) => {
+// GET /api/challenges/user/:userId
+router.get('/user/:userId', async (req, res) => {
   try {
-    const challenge = await Challenge.findOne({ challengeId: req.params.id });
-    if (!challenge) {
-      return res.status(404).json({ message: 'Challenge not found' });
-    }
-    res.json(challenge);
+    const userChallenges = await UserChallenge.find({ userId: req.params.userId })
+      .sort({ joinedAt: -1 })
+      .lean();
+
+    const defs = await Challenge.find({
+      challengeId: { $in: userChallenges.map(u => u.challengeId) },
+    }).lean();
+    const defById = new Map(defs.map(d => [d.challengeId, d]));
+
+    res.status(200).json(
+      userChallenges.map(u => {
+        const def = defById.get(u.challengeId);
+        const durationDays = def?.durationDays ?? 7;
+        const daysCompleted = Math.min(u.daysCompleted, durationDays);
+        return {
+          id: u.challengeId,
+          title: def?.name ?? 'Unknown challenge',
+          description: def?.description ?? '',
+          daysCompleted,
+          durationDays,
+          progressPercentage: Math.round((daysCompleted / durationDays) * 100),
+          completed: u.completed,
+        };
+      })
+    );
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// POST /api/challenges/:id/join — Join a challenge
-router.post('/:id/join', async (req, res) => {
-  try {
-    const { userId } = req.body;
-    if (!userId) {
-      return res.status(400).json({ message: 'userId is required' });
-    }
-    
-    const challenge = await Challenge.findOne({ challengeId: req.params.id });
-    if (!challenge) {
-      return res.status(404).json({ message: 'Challenge not found' });
-    }
-    
-    // Check if user already joined
-    const existing = await UserChallenge.findOne({ userId, challengeId: challenge.challengeId });
-    if (existing) {
-      return res.status(400).json({ message: 'User already joined this challenge' });
-    }
-    
-    // Calculate end date
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + challenge.durationDays);
-    
-    const userChallenge = new UserChallenge({
-      userId,
-      challengeId: challenge.challengeId,
-      endDate,
-      currentDay: 0,
-      streakCount: 0
-    });
-    
-    await userChallenge.save();
-    
-    res.status(201).json({
-      message: 'Successfully joined challenge',
-      userChallenge
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET /api/challenges/:id/progress — Get user's challenge progress
-router.get('/:id/progress', async (req, res) => {
-  try {
-    const { userId } = req.query;
-    if (!userId) {
-      return res.status(400).json({ message: 'userId is required' });
-    }
-    
-    const userChallenge = await UserChallenge.findOne({
-      userId,
-      challengeId: req.params.id
-    });
-    
-    if (!userChallenge) {
-      return res.status(404).json({ message: 'User has not joined this challenge' });
-    }
-    
-    res.json(userChallenge);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// PUT /api/challenges/:id/complete — Complete a challenge (award streak & badge)
-router.put('/:id/complete', async (req, res) => {
+// POST /api/challenges/:challengeId/join  body: { userId }
+router.post('/:challengeId/join', async (req, res) => {
   try {
     const { userId } = req.body;
-    if (!userId) {
-      return res.status(400).json({ message: 'userId is required' });
+    const { challengeId } = req.params;
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+
+    const def = await Challenge.findOne({ challengeId, isActive: true }).lean();
+    if (!def) return res.status(404).json({ error: 'Challenge not found' });
+
+    if (await UserChallenge.exists({ userId, challengeId })) {
+      return res.status(409).json({ error: 'Already joined' });
     }
-    
-    const userChallenge = await UserChallenge.findOne({
-      userId,
-      challengeId: req.params.id
-    });
-    
-    if (!userChallenge) {
-      return res.status(404).json({ message: 'User has not joined this challenge' });
-    }
-    
-    if (userChallenge.completed) {
-      return res.status(400).json({ message: 'Challenge already completed' });
-    }
-    
-    // Update challenge completion
-    userChallenge.completed = true;
-    userChallenge.completedAt = new Date();
-    userChallenge.streakCount += 1;
-    userChallenge.badgeEarned = true;
-    
-    await userChallenge.save();
-    
-    res.json({
-      message: 'Challenge completed! 🎉',
-      streakCount: userChallenge.streakCount,
-      badgeEarned: userChallenge.badgeEarned
-    });
+
+    await UserChallenge.create({ userId, challengeId });
+    res.status(201).json({ message: 'Joined challenge', challengeId });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// PUT /api/challenges/:id/note — Add custom note to challenge
-router.put('/:id/note', async (req, res) => {
+// POST /api/challenges/:challengeId/checkin  body: { userId }
+router.post('/:challengeId/checkin', async (req, res) => {
   try {
-    const { userId, customNote } = req.body;
-    if (!userId || !customNote) {
-      return res.status(400).json({ message: 'userId and customNote are required' });
+    const { userId } = req.body;
+    const { challengeId } = req.params;
+
+    const [uc, def] = await Promise.all([
+      UserChallenge.findOne({ userId, challengeId }),
+      Challenge.findOne({ challengeId }).lean(),
+    ]);
+
+    if (!uc) return res.status(404).json({ error: 'You have not joined this challenge' });
+    if (uc.completed) return res.status(400).json({ error: 'Challenge already completed' });
+    if (uc.lastCheckIn && sameDay(uc.lastCheckIn, new Date())) {
+      return res.status(409).json({ error: 'Already checked in today' });
     }
-    
-    const userChallenge = await UserChallenge.findOne({
-      userId,
-      challengeId: req.params.id
-    });
-    
-    if (!userChallenge) {
-      return res.status(404).json({ message: 'User has not joined this challenge' });
+
+    uc.daysCompleted += 1;
+    uc.lastCheckIn = new Date();
+
+    const duration = def?.durationDays ?? 7;
+    if (uc.daysCompleted >= duration) {
+      uc.completed = true;
+      uc.completedAt = new Date();
     }
-    
-    userChallenge.customNote = customNote;
-    userChallenge.updatedAt = new Date();
-    await userChallenge.save();
-    
-    res.json({
-      message: 'Note added successfully',
-      customNote: userChallenge.customNote
+
+    await uc.save();
+    res.status(200).json({
+      message: 'Checked in',
+      daysCompleted: uc.daysCompleted,
+      completed: uc.completed,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-module.exports = router;
+module.exports = router; 
