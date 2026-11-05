@@ -121,7 +121,7 @@ fun ProfileContent(
     onNavigateToSettings: () -> Unit,
     onNavigateToEdit: () -> Unit,
     onLogout: () -> Unit,
-    onAddObjective: (String) -> Unit,      // ← NEW
+    onAddObjective: (String) -> Unit,
     onRemoveObjective: (String) -> Unit
 ) {
     // Log the user data being displayed
@@ -149,9 +149,9 @@ fun ProfileContent(
             )
             // MOVA Logo with 2 dots (branding)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(MovaBlack))
+                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onBackground))
                 Spacer(modifier = Modifier.width(2.dp))
-                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color.Red))
+                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.error))
                 Spacer(modifier = Modifier.width(4.dp))
                 Text("MOVA", fontWeight = FontWeight.Bold, color = MovaBlue, fontSize = 18.sp)
             }

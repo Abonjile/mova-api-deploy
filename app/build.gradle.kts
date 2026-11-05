@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -21,15 +22,34 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Fallback URL. Both build types set their own value below.
+        buildConfigField("String", "API_BASE_URL", "\"https://mova-api-deploy.onrender.com/\"")
+    }
+
+    // Signed APK: the keystore and passwords come from the environment, so they are not in the repo.
+    signingConfigs {
+        create("release") {
+            storeFile = file("${System.getProperty("user.home")}/mova-release.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = "mova"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+        }
     }
 
     buildTypes {
+        debug {
+            // Local backend on the emulator. Use the PC's LAN IP for a physical phone.
+            buildConfigField("String", "API_BASE_URL", "\"https://mova-api-deploy.onrender.com/\"")
+        }
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "API_BASE_URL", "\"https://mova-api-deploy.onrender.com/\"")
         }
     }
 
@@ -44,6 +64,8 @@ android {
 
     buildFeatures {
         compose = true
+        // Generates BuildConfig, which RetrofitClient.kt reads.
+        buildConfig = true
     }
 
     composeOptions {
@@ -59,7 +81,6 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
-
 }
 
 dependencies {
@@ -67,6 +88,9 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
+
+    // AppCompat: per-app language switching
+    implementation("androidx.appcompat:appcompat:1.7.1")
 
     // Compose
     implementation(platform("androidx.compose:compose-bom:2023.10.01"))
@@ -103,12 +127,29 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    // Confetti Dependency
+    implementation("nl.dionsegijn:konfetti-compose:2.0.4")
 
     // Biometric Authentication
     implementation("androidx.biometric:biometric:1.1.0")
 
     // DataStore (Settings)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Firebase BoM (manages Firebase library versions)
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+
+    // Firebase Auth & Messaging
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-messaging")
+
+    // Google Sign-In via Credential Manager
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("androidx.credentials:credentials:1.2.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.2.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

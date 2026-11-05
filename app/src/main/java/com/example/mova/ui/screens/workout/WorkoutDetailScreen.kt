@@ -14,21 +14,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mova.data.models.Workout
 import com.example.mova.data.models.Exercise
+import com.example.mova.data.models.Workout
 import com.example.mova.data.repository.WorkoutRepository
 
 @Composable
 fun WorkoutDetailScreen(
     workoutId: String,
     onBack: () -> Unit = {},
-    onStartWorkout: (String) -> Unit = {},
-    repository: WorkoutRepository = WorkoutRepository()
+    onStartWorkout: (String) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val repository = remember(context) { WorkoutRepository(context) }
     var workout by remember { mutableStateOf<Workout?>(null) }
     var exerciseMap by remember { mutableStateOf<Map<String, Exercise>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -37,10 +40,14 @@ fun WorkoutDetailScreen(
     LaunchedEffect(workoutId) {
         try {
             isLoading = true
+            // 1. Fetch workout (will hit cache if offline)
             val w = repository.getWorkoutById(workoutId)
-            val allExercises = repository.getAllExercises()
             workout = w
+
+            // 2. Fetch exercises (will hit cache if offline)
+            val allExercises = repository.getAllExercises()
             exerciseMap = allExercises.associateBy { it.exerciseId }
+
             errorMessage = null
         } catch (e: Exception) {
             errorMessage = "Could not load workout: ${e.message}"
@@ -66,7 +73,7 @@ fun WorkoutDetailScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color(0xFF00008B)
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
             Spacer(modifier = Modifier.width(4.dp))
@@ -74,7 +81,7 @@ fun WorkoutDetailScreen(
                 text = workout?.name ?: "Workout",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF00008B)
+                color = MaterialTheme.colorScheme.primary
             )
         }
 
@@ -97,6 +104,8 @@ fun WorkoutDetailScreen(
             }
             workout != null -> {
                 val w = workout!!
+                // Check if the exercises are actually loaded
+                val hasExercises = w.exercises.isNotEmpty()
 
                 // Big workout image (~1/3 of screen)
                 Box(
@@ -128,20 +137,20 @@ fun WorkoutDetailScreen(
                         text = w.name,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF00008B)
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = w.displayDescription,
                         fontSize = 14.sp,
-                        color = Color(0xFF757575)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "${w.difficulty} · ${w.durationMinutes} min · ${w.exercises.size} exercises",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF00008B)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
 
@@ -158,16 +167,52 @@ fun WorkoutDetailScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                w.exercises.sortedBy { it.orderNumber }.forEachIndexed { index, we ->
-                    val ex = exerciseMap[we.exerciseId]
-                    ExerciseRow(
-                        index = index + 1,
-                        exerciseName = ex?.name ?: "Exercise",
-                        sets = we.sets,
-                        reps = we.reps,
-                        targetMuscle = ex?.targetMuscleGroup ?: ""
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                if (!hasExercises) {
+                    // THE CUTE WARNING MESSAGE
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)), // Soft orange background
+                        shape = RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFB74D))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "📡 Connection Required",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = Color(0xFFE65100)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "It looks like you're offline! Please check your internet connection to load this workout's exercises.\n\nTip: Workouts you've viewed recently are saved automatically. Check the 'Jump Back In' section on the dashboard to start those offline!",
+                                fontSize = 13.sp,
+                                color = Color.Black,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 18.sp
+                            )
+                        }
+                    }
+                } else {
+                    // Only show the list if it actually loaded
+                    w.exercises.sortedBy { it.orderNumber }.forEachIndexed { index, we ->
+                        val ex = exerciseMap[we.exerciseId]
+                        val exerciseName = ex?.name ?: we.exerciseId.removePrefix("ex_").replace("_", " ").split(" ")
+                            .joinToString(" ") { word -> word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() } }
+                            .ifEmpty { "Exercise ${index + 1}" }
+                        ExerciseRow(
+                            index = index + 1,
+                            exerciseName = exerciseName,
+                            sets = we.sets,
+                            reps = we.reps,
+                            targetMuscle = ex?.targetMuscleGroup ?: ""
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -175,17 +220,19 @@ fun WorkoutDetailScreen(
                 // START button
                 Button(
                     onClick = { onStartWorkout(w.workoutId) },
+                    enabled = hasExercises, // Disables the button if offline and not cached
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
                         .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFE53935)
+                        containerColor = Color(0xFFE53935),
+                        disabledContainerColor = Color.Gray // Greys out the button
                     ),
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     Text(
-                        text = "START WORKOUT",
+                        text = if (hasExercises) "START WORKOUT" else "UNAVAILABLE OFFLINE",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -211,7 +258,7 @@ private fun ExerciseRow(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -241,13 +288,13 @@ private fun ExerciseRow(
                     text = exerciseName,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (targetMuscle.isNotEmpty()) {
                     Text(
                         text = targetMuscle,
                         fontSize = 12.sp,
-                        color = Color(0xFF757575)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -255,7 +302,7 @@ private fun ExerciseRow(
                 text = "$sets × $reps",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF00008B)
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }

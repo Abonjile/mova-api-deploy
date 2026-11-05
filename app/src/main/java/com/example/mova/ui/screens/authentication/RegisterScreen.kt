@@ -1,34 +1,31 @@
 package com.example.mova.ui.screens.authentication
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.collectAsState
-import com.example.mova.R
 import com.example.mova.ui.theme.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
 
 /**
  * Sign-up screen — allows a new user to create a MOVA account.
@@ -57,6 +54,55 @@ fun RegisterScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
+    // Credential Manager Setup
+    val context = LocalContext.current
+    val credentialManager = remember { CredentialManager.create(context) }
+    val scope = rememberCoroutineScope()
+
+    val webClientId = "919226330565-0o5mq0sbug1btm74q7rde3rvnr54934r.apps.googleusercontent.com"
+
+    val launchGoogleSignIn: () -> Unit = {
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId(webClientId)
+            .setAutoSelectEnabled(true)
+            .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
+        scope.launch {
+            try {
+                val result = credentialManager.getCredential(context, request)
+                val credential = result.credential
+                // Explicitly check for GoogleIdTokenCredential or CustomCredential
+                if (credential is GoogleIdTokenCredential) {
+                    Log.d(
+                        "AuthScreen",
+                        "Google ID Token received: ${credential.idToken.take(10)}..."
+                    )
+                    viewModel.signInWithGoogle(credential.idToken)
+                } else if (credential is androidx.credentials.CustomCredential &&
+                    credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                ) {
+                    // Fallback extraction for older/newer versions of Play Services
+                    val googleCred = GoogleIdTokenCredential.createFrom(credential.data)
+                    Log.d("AuthScreen", "Google ID Token extracted from CustomCredential")
+                    viewModel.signInWithGoogle(googleCred.idToken)
+                } else {
+                    Log.e(
+                        "AuthScreen",
+                        "Unexpected credential type: ${credential::class.java.name}"
+                    )
+                }
+            } catch (e: Exception) {
+                // Catch generic exception to see what's actually failing
+                Log.e("AuthScreen", "Credential Manager Error: ${e.message}", e)
+            }
+        }
+    }
+
     // Navigate on success
     LaunchedEffect(uiState.success) {
         if (uiState.success) {
@@ -69,7 +115,7 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MovaOffWhite)
+            .background(MaterialTheme.colorScheme.surface)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -87,7 +133,7 @@ fun RegisterScreen(
                 text = "Create an account",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = MovaBlack
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -138,7 +184,7 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "❌ ${uiState.error}",
-                    color = MovaError,
+                    color = MaterialTheme.colorScheme.error,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center
                 )
@@ -176,12 +222,12 @@ fun RegisterScreen(
                 text = "Or Continue with :",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = MovaBlack
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(20.dp))
 
             SocialLoginRow(
-                onGoogleClick = { viewModel.signInWithGoogle() },
+                onGoogleClick = launchGoogleSignIn,
                 onAppleClick = { viewModel.signInWithApple() },
                 onBiometricClick = { viewModel.signInWithBiometric() }
             )

@@ -1,229 +1,316 @@
+/**
+ * =====================================================================================
+ * COMPOSABLE: ChallengesScreen
+ * =====================================================================================
+ * Shows the programs the user has joined as tabs, each with its progress, and a list
+ * of programs they can still join. Every label comes from strings.xml.
+ * =====================================================================================
+ */
 package com.example.mova.ui.screens.challenges
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mova.R
+import com.example.mova.data.remote.model.ChallengeDto
+import com.example.mova.data.remote.model.ProgramDto
 
-/**
- * Composable function representing the Challenges screen.
- * Allows users to view and manage active fitness programs, track progress, and view target muscle groups.
-njd*/
 @Composable
-fun ChallengesScreen() {
-    // Outer vertical scroll container for the entire screen content
-    Column(
-        modifier = Modifier // Modifiers for layout styling
-            .fillMaxSize() // Fill the entire available screen space
-            .background(MaterialTheme.colorScheme.background) // Light background color for the screen
-            .verticalScroll(rememberScrollState()) // Enable scrolling for overflow content
-            .padding(16.dp) // Apply padding around all screen contents
+fun ChallengesScreen(
+    userId: String,
+    viewModel: ChallengesViewModel = viewModel()
+) {
+    val joined by viewModel.joined.collectAsState()
+    val catalogue by viewModel.catalogue.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    // Reload whenever the screen is shown. ON_RESUME also fires when the observer is added,
+    // so this covers the first open and every return from another screen, such as a workout.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, userId) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refresh(userId)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    // Which joined programme tab is open. Clamped so it never points past the list.
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabIndex = selectedTab.coerceIn(0, (joined.size - 1).coerceAtLeast(0))
+
+    val available = catalogue.filter { !it.joined }
+    // A local copy lets the compiler smart-cast the value in the when branches below.
+    val currentError = error
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F9FA))
+            .padding(16.dp)
     ) {
-        // Row container for the top app bar elements (Title and Brand Logo)
-        Row(
-            modifier = Modifier.fillMaxWidth(), // Span the full width of the screen
-            horizontalArrangement = Arrangement.SpaceBetween, // Space title and logo apart
-            verticalAlignment = Alignment.CenterVertically // Center items vertically in the row
-        ) {
-            // Text composable displaying the screen title "Challenges"
-            Text(
-                text = "Challenges", // String value for the header
-                fontSize = 24.sp, // Large font size for prominent heading
-                fontWeight = FontWeight.Bold, // Bold text weight
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            // Row container for the MOVA brand indicator dots and logo text
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Black circle dot for branding design
-                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.background, CircleShape))
-                // Horizontal spacing between the dots
-                Spacer(modifier = Modifier.width(4.dp))
-                // Red circle dot for branding design
-                Box(modifier = Modifier.size(8.dp).background(Color.Red, CircleShape))
-                // Horizontal spacing before the brand name text
-                Spacer(modifier = Modifier.width(6.dp))
-                // Brand name text "MOVA"
-                Text(text = "MOVA", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1A237E))
-            }
-        }
-
-        // Vertical spacing below the top app bar
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Section header text for Target Muscle Groups
-        Text(
-            text = "Target Muscle Groups", // Header text
-            fontWeight = FontWeight.Bold, // Bold font weight
-            fontSize = 15.sp, // Medium font size
-            color = Color(0xFF1A237E) // Dark text color
-        )
-        // Vertical spacing below the header
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Card container displaying target muscle group summary (e.g., Legs)
-        Card(
-            modifier = Modifier.width(140.dp), // Fixed width for a compact card look
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // White background for the card
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp) // Subtle shadow elevation
-        ) {
-            // Inner column container for card contents
-            Column(
-                modifier = Modifier.padding(12.dp) // Internal padding inside the card
+        // ---- Header ----
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Background container for the muscle icon
-                Box(
-                    modifier = Modifier
-                        .size(36.dp) // Fixed square size for icon container
-                        .background(Color(0xFFFFF3E0), RoundedCornerShape(8.dp)), // Light orange rounded background
-                    contentAlignment = Alignment.Center // Center the icon inside the box
-                ) {
-                    // Emoji representing leg workouts
-                    Text(text = "🏃", fontSize = 18.sp)
+                Text(
+                    text = stringResource(R.string.challenges_title),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A237E)
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.size(8.dp).background(Color.Black, CircleShape))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Box(modifier = Modifier.size(8.dp).background(Color.Red, CircleShape))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = "MOVA", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1A237E))
                 }
-                // Vertical spacing below the icon
-                Spacer(modifier = Modifier.height(8.dp))
-                // Text showing the muscle group name
-                Text(text = "Legs", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1A1C1E))
-                // Text showing workout count for the muscle group
-                Text(text = "10 Workouts", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = stringResource(R.string.challenges_active_programs),
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = Color(0xFF1A237E)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        // ---- Joined programmes: loading, error, empty, or tabs ----
+        when {
+            isLoading -> item {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(120.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFFD9820B))
+                }
+            }
+
+            currentError != null -> item {
+                Text(
+                    text = errorText(currentError),
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 12.sp
+                )
+            }
+
+            joined.isEmpty() -> item {
+                Text(
+                    text = stringResource(R.string.challenges_none_joined),
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+
+            else -> {
+                // One tab per joined programme.
+                item {
+                    ScrollableTabRow(
+                        selectedTabIndex = tabIndex,
+                        edgePadding = 0.dp,
+                        containerColor = Color.Transparent
+                    ) {
+                        joined.forEachIndexed { index, challenge ->
+                            Tab(
+                                selected = tabIndex == index,
+                                onClick = { selectedTab = index },
+                                text = {
+                                    Text(
+                                        text = challenge.title,
+                                        maxLines = 1,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // The open programme's progress card.
+                item {
+                    ActiveProgramCard(
+                        challenge = joined[tabIndex],
+                        onCheckIn = { viewModel.checkIn(userId, joined[tabIndex].id) }
+                    )
+                }
             }
         }
 
-        // Vertical spacing between sections
-        Spacer(modifier = Modifier.height(24.dp))
-        // Section header for Active Programs djfb
-        Text(
-            text = "Active Programs", // Header text
-            fontWeight = FontWeight.Bold, // Bold font weight
-            fontSize = 16.sp, // Medium-large font size
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        // Vertical spacing below section header
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Reusable card composable call for the first active program (7-Day Jumpstart)
-        ActiveProgramCard(
-            title = "7-Day Jumpstart", // Program title
-            subtitle = "Build consistency", // Program description subtitle
-            progressText = "6/7 days", // Current progress text in days
-            progressValue = 6f / 7f, // Numerical progress ratio for progress bar
-            percentageString = "85%" // Completion percentage string
-        )
-
-        // Vertical spacing between cards
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Reusable card composable call for the second active program (14-Day Shred)
-        ActiveProgramCard(
-            title = "14-Day Shred", // Program title
-            subtitle = "High-intensity fat burn", // Program description subtitle
-            progressText = "6/14 days", // Current progress text in days
-            progressValue = 6f / 14f, // Numerical progress ratio for progress bar
-            percentageString = "42%" // Completion percentage string
-        )
-
-        // Vertical spacing between cards
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Reusable card composable call for the third active program (30-Day Endurance)
-        ActiveProgramCard(
-            title = "30-Day Endurance", // Program title
-            subtitle = "Ultimate body shaping", // Program description subtitle
-            progressText = "0/30 days", // Current progress text in days
-            progressValue = 0f / 30f, // Numerical progress ratio for progress bar
-            percentageString = "0%" // Completion percentage string
-        )
+        // ---- Programmes the user can still join ----
+        if (available.isNotEmpty()) {
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = stringResource(R.string.challenges_available),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color(0xFF1A237E)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            items(available, key = { it.id }) { program ->
+                AvailableProgramCard(
+                    program = program,
+                    onJoin = { viewModel.join(userId, program.id) }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
     }
 }
 
-/**
- * Reusable composable function for displaying an individual active fitness challenge program card.
- */
+/** Card for the open programme: progress, percentage and check-in. */
 @Composable
-fun ActiveProgramCard(
-    title: String, // Title parameter for the program
-    subtitle: String, // Subtitle/description parameter for the program
-    progressText: String, // Text showing day-based progress (e.g., 6/7 days)
-    progressValue: Float, // Float ratio between 0.0 and 1.0 for the progress bar
-    percentageString: String // String representation of overall percentage completed
+private fun ActiveProgramCard(
+    challenge: ChallengeDto,
+    onCheckIn: () -> Unit
 ) {
-    // Card container for the active program item
     Card(
-        modifier = Modifier.fillMaxWidth(), // Fill maximum available width
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // White background color
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp) // Subtle elevation shadow
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        // Inner column layout for card content elements
-        Column(
-            modifier = Modifier
-                .fillMaxWidth() // Span full width of card
-                .padding(16.dp) // Internal padding for content spacing
-        ) {
-            // Top row inside card holding program title and day progress text
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(), // Span full width
-                horizontalArrangement = Arrangement.SpaceBetween, // Space title and progress apart
-                verticalAlignment = Alignment.CenterVertically // Center align vertically
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Text showing the main program title
                 Text(
-                    text = title,
+                    text = challenge.title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     color = Color(0xFF1A1C1E)
                 )
-                // Text showing current progress days (e.g., 6/7 days)
                 Text(
-                    text = progressText,
+                    text = stringResource(
+                        R.string.challenges_progress_days,
+                        challenge.daysCompleted,
+                        challenge.durationDays
+                    ),
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
                     color = Color(0xFFD9820B)
                 )
             }
-            // Vertical spacing below title row
             Spacer(modifier = Modifier.height(2.dp))
-            // Text showing program subtitle/description
-            Text(text = subtitle, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            // Vertical spacing before progress bar
+            Text(text = challenge.description, fontSize = 11.sp, color = Color.Gray)
             Spacer(modifier = Modifier.height(12.dp))
-            // Linear progress indicator representing challenge completion ratio
+
             LinearProgressIndicator(
-                progress = progressValue, // Lambda providing progress ratio
+                progress =  challenge.progressPercentage / 100f ,
                 modifier = Modifier
-                    .fillMaxWidth() // Fill full card width
-                    .height(6.dp) // Height thickness of progress bar
-                    .clip(RoundedCornerShape(3.dp)), // Rounded corner clipping for smooth look
-                color = Color(0xFFD9820B), // Amber color for filled progress portion
-                trackColor = Color(0xFFF1F3F5) // Light grey background track color
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp)),
+                color = Color(0xFFD9820B),
+                trackColor = Color(0xFFF1F3F5)
             )
-            // Vertical spacing below progress bar
+
             Spacer(modifier = Modifier.height(8.dp))
-            // Bottom row showing overall progress label and percentage completed
             Row(
-                modifier = Modifier.fillMaxWidth(), // Span full width
-                horizontalArrangement = Arrangement.SpaceBetween // Space items to opposite ends
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Label text for overall progress
-                Text(text = "Overall progress", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                // Text showing exact completion percentage
                 Text(
-                    text = percentageString,
+                    text = stringResource(R.string.challenges_overall_progress),
+                    fontSize = 11.sp,
+                    color = Color.Gray
+                )
+                Text(
+                    text = "${challenge.progressPercentage}%",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1A1C1E)
                 )
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            if (challenge.completed) {
+                Text(
+                    text = stringResource(R.string.challenges_completed),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    color = Color(0xFF2E7D32),
+                    modifier = Modifier.align(Alignment.End)
+                )
+            } else {
+                OutlinedButton(
+                    onClick = onCheckIn,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(text = stringResource(R.string.challenges_check_in), fontSize = 12.sp)
+                }
+            }
         }
     }
+}
+
+/** Card for a programme the user has not joined yet. */
+@Composable
+private fun AvailableProgramCard(
+    program: ProgramDto,
+    onJoin: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = program.title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color(0xFF1A1C1E)
+                )
+                Text(text = program.description, fontSize = 11.sp, color = Color.Gray)
+                Text(
+                    text = stringResource(R.string.challenges_duration_days, program.durationDays),
+                    fontSize = 11.sp,
+                    color = Color(0xFFD9820B)
+                )
+            }
+            Button(onClick = onJoin) {
+                Text(text = stringResource(R.string.challenges_join), fontSize = 12.sp)
+            }
+        }
+    }
+}
+
+/** Turns an error from the ViewModel into the matching translated message. */
+@Composable
+private fun errorText(error: ChallengeError): String = when (error) {
+    ChallengeError.NETWORK -> stringResource(R.string.network_error)
+    ChallengeError.LOAD_FAILED -> stringResource(R.string.error_load)
+    ChallengeError.ACTION_FAILED -> stringResource(R.string.error_action)
+    ChallengeError.ALREADY_DONE -> stringResource(R.string.error_already_done)
 }

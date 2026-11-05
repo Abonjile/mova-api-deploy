@@ -86,11 +86,11 @@ fun MovTextField(
             isError = isError,
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MovaOffWhite,
-                unfocusedContainerColor = MovaOffWhite,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                 focusedBorderColor = MovaTeal,
                 unfocusedBorderColor = Color(0xFFE5E7EB),
-                errorBorderColor = MovaError
+                errorBorderColor = MaterialTheme.colorScheme.error
             ),
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(
@@ -102,7 +102,7 @@ fun MovTextField(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = errorMessage,
-                color = MovaError,
+                color = MaterialTheme.colorScheme.error,
                 fontSize = 12.sp
             )
         }
@@ -144,7 +144,7 @@ fun SocialLoginRow(
 fun SocialButton(icon: Painter, onClick: () -> Unit, contentDescription: String) {
     Surface(
         shape = RoundedCornerShape(8.dp),
-        color = MovaLightGray,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         modifier = Modifier
             .size(60.dp, 40.dp)
             .clickable(onClick = onClick)
@@ -153,7 +153,7 @@ fun SocialButton(icon: Painter, onClick: () -> Unit, contentDescription: String)
             Icon(
                 painter = icon,
                 contentDescription = contentDescription,
-                tint = MovaBlack,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(24.dp)
             )
         }

@@ -1,0 +1,21 @@
+$kind: http-request
+name: Get Challenge
+method: GET
+url: '{{baseUrl}}/api/challenges/:id'
+order: 2000
+description: Retrieve details for a specific challenge by its challengeId. Returns 404 if not found.
+pathVariables:
+  - key: id
+    value: '{{challengeId}}'
+    description: The unique identifier of the challenge
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("Response contains challengeId", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("challengeId");
+      });

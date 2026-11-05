@@ -1,0 +1,42 @@
+$kind: http-request
+name: Create Workout
+method: POST
+url: '{{baseUrl}}/api/workouts'
+order: 2000
+description: |-
+  Create a new custom workout for a user. Optionally include an array of exercises
+  to associate with the workout via junction entries.
+  `userId` and `name` are required.
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "userId": "{{userId}}",
+      "name": "Morning Strength",
+      "description": "Full body strength workout",
+      "difficulty": "intermediate",
+      "durationMinutes": 45,
+      "iconName": "fitness",
+      "exercises": [
+        {
+          "exerciseId": "ex-001",
+          "sets": 3,
+          "reps": 12,
+          "restSeconds": 60
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 201", function () {
+        pm.response.to.have.status(201);
+      });
+      pm.test("Response contains workoutId", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("workoutId");
+      });
