@@ -39,7 +39,8 @@ data class MuscleDistributionDto(
 /** Everything the Rewards screen needs in one response. */
 data class RewardDto(
     val streakDays: Int,
-    val consistencyLevel: Int,          // percentage of the last 7 days with a workout
+    val consistencyLevel: String, // percentage of the last 7 days with a workout
+   val updatedPoints: Int =0,
     val claimableRewards: List<ClaimableRewardDto>,
     val milestoneBadges: List<MilestoneBadgeDto>
 )
@@ -47,16 +48,21 @@ data class RewardDto(
 /** A bonus that can be claimed once per completed challenge. */
 data class ClaimableRewardDto(
     val id: String,                     // the UserChallenge id, sent back when claiming
-    val title: String,
+    val name: String,
     val description: String,
-    val isClaimed: Boolean
+    val isClaimed: Boolean,
+    val isUnlocked: Boolean = true,
+    val iconUrl: String? = null
 )
 
 /** A trophy or achievement, shown greyed out until unlocked. */
 data class MilestoneBadgeDto(
-    val title: String,
-    val subtitle: String,
-    val isUnlocked: Boolean
+    val id: String? = null,
+    val name: String,
+    val description: String,
+   val isClaimed: Boolean = false,
+    val isUnlocked: Boolean,
+    val iconUrl: String? = null
 )
 data class ProgramDto(
     val id: String,
