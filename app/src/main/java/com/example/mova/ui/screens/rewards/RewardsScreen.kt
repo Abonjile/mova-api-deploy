@@ -105,12 +105,12 @@ fun RewardsScreen(
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                             Image(
                                 painter = painterResource(id = R.drawable.ic_red_medal),
-                                contentDescription = reward.title,
+                                contentDescription = reward.name,
                                 modifier = Modifier.size(36.dp)
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
-                                Text(text = reward.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                                Text(text = reward.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                                 Text(text = reward.description, fontSize = 11.sp, color = Color.Gray)
                             }
                         }
@@ -157,18 +157,18 @@ fun RewardsScreen(
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_golden_trophy),
-                            contentDescription = badge.title,
+                            contentDescription = badge.name,
                             modifier = Modifier.size(36.dp).alpha(if (badge.isUnlocked) 1f else 0.4f)
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
-                                text = badge.title,
+                                text = badge.name,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
                                 color = if (badge.isUnlocked) MaterialTheme.colorScheme.onSurface else Color.Gray
                             )
-                            Text(text = badge.subtitle, fontSize = 11.sp, color = Color.Gray)
+                            Text(text = badge.description, fontSize = 11.sp, color = Color.Gray)
                         }
                     }
                 }
